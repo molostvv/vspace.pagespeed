@@ -36,6 +36,11 @@ final class MarkdownTest extends TestCase
         ]), $html);
     }
 
+    public function testHeadingAnchor(): void
+    {
+        $this->assertSame('<h3 id="webp">WebP <code>x</code></h3>', (new Markdown())->toHtml('### WebP `x` {#webp}'));
+    }
+
     public function testTable(): void
     {
         // «х» — байт 0x85 в UTF-8, не перевод строки

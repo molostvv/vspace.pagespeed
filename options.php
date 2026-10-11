@@ -11,9 +11,13 @@
  * @global CUser $USER
  */
 
+use Bitrix\Main\Config\Option;
 use Bitrix\Main\Context;
 use Bitrix\Main\Loader;
+use Vspace\PageSpeed\Agent;
 use Vspace\PageSpeed\Config;
+use Vspace\PageSpeed\Images\WebpStore;
+use Vspace\PageSpeed\Images\WebpSupport;
 use Vspace\PageSpeed\Optimizer;
 use Vspace\PageSpeed\Options;
 
@@ -66,6 +70,7 @@ $vpsTabs = [
     ],
     'images' => [
         'IMAGES_ACTIVE' => 'checkbox',
+        'WEBP_ACTIVE' => 'checkbox',
     ],
     'cache' => [
         'CACHE_TTL_DAYS' => [1, 365],
@@ -82,7 +87,9 @@ $tabControl = new CAdminTabControl('tabControl', [
 ]);
 
 $vpsRequest = Context::getCurrent()->getRequest();
-$vpsStorage = Optimizer::storage(rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/'));
+$vpsRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/');
+$vpsStorage = Optimizer::storage($vpsRoot);
+$vpsWebp = new WebpStore($vpsRoot);
 $vpsErrors = [];
 $vpsPosted = null; // введённые значения — чтобы при ошибке показать их, а не сохранённые
 $vpsRedirect = $APPLICATION->GetCurPage() . '?mid=' . urlencode($module_id) . '&lang=' . urlencode(LANGUAGE_ID);
@@ -91,6 +98,10 @@ if ($vpsRequest->isPost() && check_bitrix_sessid()) {
     if ((string)$vpsRequest->getPost('vps_clear_cache') !== '') {
         $vpsStorage->clear();
         LocalRedirect($vpsRedirect . '&vps_cleared=Y&' . $tabControl->ActiveTabParam());
+    }
+    if ((string)$vpsRequest->getPost('vps_clear_webp') !== '') {
+        $vpsWebp->clear();
+        LocalRedirect($vpsRedirect . '&vps_webp_cleared=Y&' . $tabControl->ActiveTabParam());
     }
     if ((string)$vpsRequest->getPost('Update') !== '' || (string)$vpsRequest->getPost('Apply') !== '') {
         $vpsPosted = [];
@@ -122,6 +133,7 @@ if ($vpsRequest->isPost() && check_bitrix_sessid()) {
             foreach ($vpsPosted as $vpsCode => $vpsValue) {
                 Options::set($vpsCode, (string)$vpsValue);
             }
+            Agent::register(); // агента WebP нет у модуля, установленного до появления WebP
             LocalRedirect($vpsRedirect . '&' . $tabControl->ActiveTabParam());
         }
     }
@@ -132,6 +144,38 @@ if ($vpsErrors) {
 }
 if ($vpsRequest->getQuery('vps_cleared') === 'Y') {
     CAdminMessage::ShowNote(GetMessage('VPS_OPT_CACHE_CLEARED'));
+}
+if ($vpsRequest->getQuery('vps_webp_cleared') === 'Y') {
+    CAdminMessage::ShowNote(GetMessage('VPS_OPT_WEBP_CLEARED'));
+}
+
+// «N мин назад» — время последнего запуска агента WebP из cron
+$vpsAgo = static function (int $seconds): string {
+    foreach ([[86400, 'D'], [3600, 'H'], [60, 'M']] as [$unit, $code]) {
+        if ($seconds >= $unit * 2) {
+            return GetMessage('VPS_OPT_AGO_' . $code, ['#N#' => intdiv($seconds, $unit)]);
+        }
+    }
+    return GetMessage('VPS_OPT_AGO_S', ['#N#' => $seconds]);
+};
+// WebP включён, но копии не появятся: в GD нет WebP или агент не запускается из cron
+$vpsCronAge = $vpsWebp->cronAge();
+if (Options::config()->active && Options::config()->webpActive) {
+    if (!WebpSupport::server()) {
+        CAdminMessage::ShowMessage(['MESSAGE' => GetMessage('VPS_OPT_WEBP_NO_GD'), 'TYPE' => 'ERROR']);
+    } elseif (!$vpsWebp->cronWorks()) {
+        $vpsCronMode = Option::get('main', 'agents_use_crontab', 'N') === 'Y' || (defined('BX_CRONTAB_SUPPORT') && BX_CRONTAB_SUPPORT === true)
+            || Option::get('main', 'check_agents', 'Y') === 'N';
+        CAdminMessage::ShowMessage([
+            'MESSAGE' => GetMessage('VPS_OPT_WEBP_NO_CRON'),
+            'DETAILS' => GetMessage($vpsCronMode ? 'VPS_OPT_WEBP_NO_CRON_SILENT' : 'VPS_OPT_WEBP_NO_CRON_HITS', [
+                '#AGO#' => $vpsCronAge === null ? GetMessage('VPS_OPT_WEBP_CRON_NEVER') : GetMessage('VPS_OPT_WEBP_CRON_AGO', ['#AGO#' => $vpsAgo($vpsCronAge)]),
+                '#HELP#' => '/bitrix/admin/vspace_pagespeed_help.php?lang=' . LANGUAGE_ID . '#webp',
+            ]),
+            'TYPE' => 'ERROR',
+            'HTML' => true,
+        ]);
+    }
 }
 
 $vpsValue = static function (string $code) use ($module_id, $vpsPosted): string {
@@ -179,6 +223,34 @@ $vpsValue = static function (string $code) use ($module_id, $vpsPosted): string 
                 </td>
             </tr>
         <?php endforeach; ?>
+
+        <?php if ($vpsTab === 'images'): ?>
+            <?php $vpsWebpStats = $vpsWebp->stats(); ?>
+            <tr class="heading"><td colspan="2"><?= GetMessage('VPS_OPT_HEADING_WEBP') ?></td></tr>
+            <tr>
+                <td width="40%"><?= GetMessage('VPS_OPT_WEBP_CRON') ?></td>
+                <td width="60%"><?= $vpsCronAge === null ? GetMessage('VPS_OPT_WEBP_CRON_NEVER') : GetMessage('VPS_OPT_WEBP_CRON_AGO', ['#AGO#' => $vpsAgo($vpsCronAge)]) ?></td>
+            </tr>
+            <tr>
+                <td><?= GetMessage('VPS_OPT_WEBP_FILES') ?></td>
+                <td><?= GetMessage('VPS_OPT_STATS_VALUE', ['#FILES#' => $vpsWebpStats['files'], '#SIZE#' => CFile::FormatSize($vpsWebpStats['bytes'])]) ?></td>
+            </tr>
+            <tr>
+                <td class="adm-detail-valign-top"><?= GetMessage('VPS_OPT_WEBP_ORIGINALS') ?></td>
+                <td>
+                    <?= (int)$vpsWebpStats['originals'] ?>
+                    <div style="margin-top:4px;color:#7a7a7a;max-width:640px"><?= GetMessage('VPS_OPT_WEBP_ORIGINALS_HINT') ?></div>
+                </td>
+            </tr>
+            <tr>
+                <td><?= GetMessage('VPS_OPT_WEBP_QUEUE') ?></td>
+                <td><?= (int)$vpsWebpStats['queue'] ?></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="submit" name="vps_clear_webp" value="<?= GetMessage('VPS_OPT_WEBP_CLEAR') ?>"></td>
+            </tr>
+        <?php endif; ?>
 
         <?php if ($vpsTab === 'cache'): ?>
             <?php

@@ -7,7 +7,7 @@ $MESS['VPS_OPT_TAB_GENERAL_TITLE'] = 'Включение и исключения
 $MESS['VPS_OPT_TAB_CRITICAL'] = 'Critical CSS';
 $MESS['VPS_OPT_TAB_CRITICAL_TITLE'] = 'Стили первого экрана';
 $MESS['VPS_OPT_TAB_IMAGES'] = 'Картинки';
-$MESS['VPS_OPT_TAB_IMAGES_TITLE'] = 'Загрузка картинок';
+$MESS['VPS_OPT_TAB_IMAGES_TITLE'] = 'Загрузка картинок и WebP';
 $MESS['VPS_OPT_TAB_CACHE'] = 'Кеш и проверка';
 $MESS['VPS_OPT_TAB_CACHE_TITLE'] = 'Кеш модуля и проверка страниц';
 
@@ -18,7 +18,7 @@ $MESS['VPS_OPT_EXCLUDE_URLS_HINT'] = 'По одному правилу в стр
 $MESS['VPS_OPT_EXCLUDE_HOSTS'] = 'Не обрабатывать домены';
 $MESS['VPS_OPT_EXCLUDE_HOSTS_HINT'] = 'По одному в строке. <code>design-demis.ru</code> — домен и его www; <code>crm.</code> — домены, начинающиеся с crm.; <code>*.demis.ru</code> — маска.';
 $MESS['VPS_OPT_AMMINA_DISABLE'] = 'Выключать у Ammina то, что делает модуль';
-$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'На страницах, которые обрабатывает модуль, у ammina.optimizer выключаются блок CSS (объединение и её critical — если включён critical CSS) и lazyload (если включены картинки). WebP, отложенный JS и остальное у неё продолжают работать. Нужно, пока Ammina установлена.';
+$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'На страницах, которые обрабатывает модуль, у ammina.optimizer выключаются блок CSS (объединение и её critical — если включён critical CSS), lazyload (если включена отложенная загрузка) и картинки (её WebP — если включены WebP-копии и агент конвертации работает по cron). Отложенный JS и остальное у неё продолжают работать. Нужно, пока Ammina установлена.';
 $MESS['VPS_OPT_DEBUG_PARAMS'] = 'Отладочные параметры для всех';
 $MESS['VPS_OPT_DEBUG_PARAMS_HINT'] = 'Параметры <code>?vps=off</code>, <code>?vps_critical=only</code>, <code>?vps_debug=1</code> работают у администраторов всегда, с этой галкой — у любого посетителя. На рабочем сайте не включать.';
 
@@ -62,6 +62,26 @@ $MESS['VPS_OPT_CRITICAL_MAX_SIZE_HINT'] = 'Если больше — стран�
 
 $MESS['VPS_OPT_IMAGES_ACTIVE'] = 'Отложенная загрузка картинок';
 $MESS['VPS_OPT_IMAGES_ACTIVE_HINT'] = 'Граница первого экрана — та же, что у critical CSS. В первом экране у картинок снимается <code>loading="lazy"</code>, фон hero (первая фоновая картинка в <code>style</code> после начала контента) загружается сразу с высоким приоритетом. Ниже первого экрана и в скрытых меню: <code>&lt;img&gt;</code> и <code>&lt;iframe&gt;</code> получают <code>loading="lazy"</code>, фоны из <code>style</code> подгружаются скриптом при подходе к экрану. Не трогаются элементы с <code>data-lazy="N"</code> или <code>data-vps-skip</code>.';
+$MESS['VPS_OPT_WEBP_ACTIVE'] = 'WebP-копии картинок';
+$MESS['VPS_OPT_WEBP_ACTIVE_HINT'] = 'Браузерам, которые умеют WebP, вместо JPEG/PNG сайта отдаются WebP-копии (на картинках сайта — в 5–15 раз легче): в <code>src</code>, <code>srcset</code>, фонах в <code>style</code> и data-атрибутах картинок для скриптов. Копии делает агент модуля раз в минуту из cron (GD, качество 80) и складывает в <code>/upload/vspace.pagespeed/webp/</code>. Страница конвертации не ждёт: пока копии нет, отдаётся исходник. Картинки из CSS-файлов не меняются.';
+$MESS['VPS_OPT_HEADING_WEBP'] = 'WebP-копии (/upload/vspace.pagespeed/webp/)';
+$MESS['VPS_OPT_WEBP_CRON'] = 'Агент конвертации из cron';
+$MESS['VPS_OPT_WEBP_CRON_AGO'] = 'запускался #AGO# назад';
+$MESS['VPS_OPT_WEBP_CRON_NEVER'] = 'ещё ни разу не запускался';
+$MESS['VPS_OPT_WEBP_FILES'] = 'Готовые копии';
+$MESS['VPS_OPT_WEBP_ORIGINALS'] = 'Оставлены исходники';
+$MESS['VPS_OPT_WEBP_ORIGINALS_HINT'] = 'WebP получился не меньше исходника (мелкие иконки, уже сжатые PNG) или картинку нельзя конвертировать (CMYK, огромный размер, ошибка — подробности в логе). Повторно не конвертируются, пока исходник не изменится.';
+$MESS['VPS_OPT_WEBP_QUEUE'] = 'Ждут конвертации';
+$MESS['VPS_OPT_WEBP_CLEAR'] = 'Удалить WebP-копии';
+$MESS['VPS_OPT_WEBP_CLEARED'] = 'WebP-копии и очередь удалены. Новые копии появятся по мере открытия страниц.';
+$MESS['VPS_OPT_WEBP_NO_GD'] = 'WebP-копии не делаются: PHP на сервере собран без поддержки WebP в GD (нет функции imagewebp).';
+$MESS['VPS_OPT_WEBP_NO_CRON'] = 'WebP-копии не делаются: агенты не выполняются по cron';
+$MESS['VPS_OPT_WEBP_NO_CRON_HITS'] = 'Агенты Битрикса выполняются на хитах посетителей, а конвертация в WebP (до 20 секунд за запуск) работает только в агенте из cron, чтобы не задерживать страницы. Переведите агенты на cron — <a href="#HELP#" target="_blank">как это сделать</a>. Пока копий нет, браузеры получают исходные JPEG/PNG (или WebP от Ammina, если она установлена).';
+$MESS['VPS_OPT_WEBP_NO_CRON_SILENT'] = 'Агенты переведены на cron, но агент конвертации #AGO#: похоже, задание cron не выполняется. Проверьте, что cron каждую минуту запускает <code>bitrix/modules/main/tools/cron_events.php</code> — <a href="#HELP#" target="_blank">подробнее</a>. Пока копий нет, браузеры получают исходные JPEG/PNG (или WebP от Ammina, если она установлена).';
+$MESS['VPS_OPT_AGO_S'] = '#N# с';
+$MESS['VPS_OPT_AGO_M'] = '#N# мин';
+$MESS['VPS_OPT_AGO_H'] = '#N# ч';
+$MESS['VPS_OPT_AGO_D'] = '#N# дн.';
 
 $MESS['VPS_OPT_CACHE_TTL_DAYS'] = 'Удалять неиспользуемый кеш через, дней';
 $MESS['VPS_OPT_HEADING_PSI'] = 'Замеры PageSpeed Insights';

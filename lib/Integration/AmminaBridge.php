@@ -4,8 +4,8 @@ namespace Vspace\PageSpeed\Integration;
 
 /**
  * Мост к модулю ammina.optimizer на время перехода: выключает в текущем запросе блоки Ammina, которые делает
- * этот модуль, — CSS-оптимизацию (объединение, её critical) и lazyload (заглушки до window.onload, «antilazy»).
- * WebP, отложенный JS и прочее у Ammina продолжают работать.
+ * этот модуль, — CSS-оптимизацию (объединение, её critical), lazyload (заглушки до window.onload, «antilazy»)
+ * и картинки (WebP через её облачный сервис). Отложенный JS и прочее у Ammina продолжают работать.
  *
  * Настройки Ammina лежат в защищённом свойстве синглтона \Ammina\Optimizer\Core2\Application::$arOptions,
  * которое она читает в своём OnEndBufferContent; меняем его через привязку замыкания к классу. Это
@@ -17,7 +17,7 @@ final class AmminaBridge
     private const APPLICATION = '\Ammina\Optimizer\Core2\Application';
 
     /**
-     * @param list<string> $categories блоки настроек Ammina: css, lazy
+     * @param list<string> $categories блоки настроек Ammina: css, lazy, images
      * @return list<string> выключенные блоки
      */
     public static function disable(array $categories): array

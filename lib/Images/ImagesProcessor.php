@@ -10,9 +10,14 @@ use Vspace\PageSpeed\Html\Tag;
 use Vspace\PageSpeed\Processor\ProcessorInterface;
 
 /**
- * Картинки относительно первого экрана (та же граница, что у critical CSS, — Context::fold()).
+ * Картинки в <body>: WebP-копии (WEBP_ACTIVE) и загрузка относительно первого экрана (IMAGES_ACTIVE). Оба
+ * правят одни и те же теги, поэтому работают в одном проходе: сначала адреса меняются на WebP, затем
+ * lazyload переносит уже новый адрес фона в data-vps-bg или в preload hero.
  *
- * В первом экране:
+ * WebP — только браузерам, которые его умеют (Context::$webp), и только готовые копии: остальные картинки
+ * ставятся в очередь агенту (WebpRewriter).
+ *
+ * Загрузка (граница первого экрана — та же, что у critical CSS, Context::fold()). В первом экране:
  *  - у <img> снимается loading="lazy" (его ставит на все картинки сайтовый COptimisationImage) — картинки,
  *    которые видны сразу, не должны ждать проверки видимости;
  *  - фон hero (первая фоновая картинка в style после начала контента — на сайте это LCP) получает в head
@@ -24,10 +29,11 @@ use Vspace\PageSpeed\Processor\ProcessorInterface;
  *    300px), который вернёт фон, когда элемент подойдёт к экрану. Без ожидания window.onload; элементы,
  *    которые появятся позже (клоны слайдеров), подхватывает MutationObserver.
  *
- * Не трогаются: элементы с data-vps-skip, картинки с data-lazy="N" (соглашение сайта — не откладывать),
- * <img fetchpriority="high"> и разметка lazyload Ammina (классы ammina-laz*), если её не выключили.
+ * Не трогаются: элементы с data-vps-skip и разметка lazyload Ammina (классы ammina-laz*), если её не
+ * выключили; lazyload не трогает картинки с data-lazy="N" (соглашение сайта — не откладывать) и
+ * <img fetchpriority="high">.
  */
-final class LazyImagesProcessor implements ProcessorInterface
+final class ImagesProcessor implements ProcessorInterface
 {
     /**
      * Отложенные фоны: data-vps-bg -> style.backgroundImage при подходе к экрану. Слайды каруселей обрезаны
@@ -44,8 +50,15 @@ final class LazyImagesProcessor implements ProcessorInterface
         . 'scan(d);if("MutationObserver" in w)new MutationObserver(function(ms){for(var i=0;i<ms.length;i++)for(var j=0;j<ms[i].addedNodes.length;j++)if(ms[i].addedNodes[j].nodeType===1)scan(ms[i].addedNodes[j])})'
         . '.observe(d.documentElement,{childList:true,subtree:true})})(window,document);';
 
-    public function __construct(private readonly Config $config)
-    {
+    /**
+     * @param WebpRewriter|null $webp null — WebP выключен
+     * @param bool $lazy false — без загрузки по первому экрану (HTML-фрагмент из AJAX: первого экрана у него нет)
+     */
+    public function __construct(
+        private readonly Config $config,
+        private readonly ?WebpRewriter $webp = null,
+        private readonly bool $lazy = true,
+    ) {
     }
 
     public function name(): string
@@ -55,10 +68,15 @@ final class LazyImagesProcessor implements ProcessorInterface
 
     public function process(Document $doc, Edits $edits, Context $ctx): void
     {
-        $fold = $ctx->fold($doc);
+        $lazy = $this->lazy && $this->config->imagesActive;
+        $webp = $ctx->webp ? $this->webp : null;
+        if (!$lazy && $webp === null) {
+            return;
+        }
+        $fold = $lazy ? $ctx->fold($doc) : null;
         $tags = $doc->tags();
         $count = count($tags);
-        $skipClasses = $this->config->foldSkipClasses;
+        $skipClasses = $lazy ? $this->config->foldSkipClasses : [];
         $hiddenUntil = -1;
         $hero = null;
         $stats = ['eager' => 0, 'lazy' => 0, 'bg' => 0];
@@ -76,42 +94,44 @@ final class LazyImagesProcessor implements ProcessorInterface
                 && array_intersect(Tag::splitClasses(Tag::attrFromString($attrs, 'class')), $skipClasses) !== []) {
                 $hiddenUntil = $tags[$doc->elementEndIndex($k)]['end'];
             }
-            $isMedia = $t['name'] === 'img' || $t['name'] === 'iframe';
-            $hasBackground = stripos($attrs, 'url(') !== false && stripos($attrs, 'style') !== false;
-            if ((!$isMedia && !$hasBackground) || stripos($attrs, 'data-vps-skip') !== false || stripos($attrs, 'ammina-laz') !== false) {
+            $isMedia = $lazy && ($t['name'] === 'img' || $t['name'] === 'iframe');
+            $hasBackground = $lazy && stripos($attrs, 'url(') !== false && stripos($attrs, 'style') !== false;
+            $hasImage = $webp !== null && WebpRewriter::mayContain($attrs);
+            if ((!$isMedia && !$hasBackground && !$hasImage) || stripos($attrs, 'data-vps-skip') !== false || stripos($attrs, 'ammina-laz') !== false) {
                 continue;
             }
-            $visible = $t['pos'] < $fold['boundary'] && $t['pos'] >= $hiddenUntil;
-            $keep = strcasecmp((string)Tag::attrFromString($attrs, 'data-lazy'), 'N') === 0;
 
             $tag = Tag::parse(substr($doc->html, $t['pos'], $t['end'] - $t['pos']));
             if ($tag === null) {
                 continue;
             }
-            $changed = false;
+            $changed = $hasImage && $webp->rewrite($tag, $ctx);
 
-            if ($isMedia) {
-                $loading = strtolower((string)$tag->get('loading'));
-                if ($visible && $loading === 'lazy') {
-                    $tag->remove('loading');
-                    $changed = true;
-                    $stats['eager']++;
-                } elseif (!$visible && !$keep && !$tag->has('loading') && strtolower((string)$tag->get('fetchpriority')) !== 'high') {
-                    $tag->set('loading', 'lazy');
-                    $changed = true;
-                    $stats['lazy']++;
-                }
-            }
-
-            if ($hasBackground && ($style = $tag->get('style')) !== null) {
-                if ($visible) {
-                    if ($hero === null && $fold['content'] !== null && $t['pos'] >= $fold['content']) {
-                        $hero = InlineBackground::firstUrl($style);
+            if ($lazy) {
+                $visible = $t['pos'] < $fold['boundary'] && $t['pos'] >= $hiddenUntil;
+                $keep = strcasecmp((string)$tag->get('data-lazy'), 'N') === 0;
+                if ($isMedia) {
+                    $loading = strtolower((string)$tag->get('loading'));
+                    if ($visible && $loading === 'lazy') {
+                        $tag->remove('loading');
+                        $changed = true;
+                        $stats['eager']++;
+                    } elseif (!$visible && !$keep && !$tag->has('loading') && strtolower((string)$tag->get('fetchpriority')) !== 'high') {
+                        $tag->set('loading', 'lazy');
+                        $changed = true;
+                        $stats['lazy']++;
                     }
-                } elseif (!$keep && ($deferred = InlineBackground::defer($style)) !== null) {
-                    $tag->set('style', $deferred[0])->set('data-vps-bg', $deferred[1]);
-                    $changed = true;
-                    $stats['bg']++;
+                }
+                if ($hasBackground && ($style = $tag->get('style')) !== null) {
+                    if ($visible) {
+                        if ($hero === null && $fold['content'] !== null && $t['pos'] >= $fold['content']) {
+                            $hero = InlineBackground::firstUrl($style);
+                        }
+                    } elseif (!$keep && ($deferred = InlineBackground::defer($style)) !== null) {
+                        $tag->set('style', $deferred[0])->set('data-vps-bg', $deferred[1]);
+                        $changed = true;
+                        $stats['bg']++;
+                    }
                 }
             }
 
@@ -131,6 +151,13 @@ final class LazyImagesProcessor implements ProcessorInterface
         foreach ($stats as $key => $value) {
             if ($value > 0) {
                 $ctx->stats['img_' . $key] = $value;
+            }
+        }
+        if ($webp !== null) {
+            foreach (['webp' => $webp->rewritten, 'webp_queued' => $webp->queued, 'webp_waiting' => $webp->waiting] as $key => $value) {
+                if ($value > 0) {
+                    $ctx->stats[$key] = $value;
+                }
             }
         }
     }

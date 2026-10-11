@@ -29,6 +29,9 @@ final class Context
      * @param string $pagePath путь текущей страницы (для относительных адресов): /services/seo/
      * @param list<string> $localHosts домены, ссылки на которые считаются локальными файлами (в нижнем регистре)
      * @param bool $previewCritical режим проверки: страница только с critical CSS, без полного CSS
+     * @param bool $webp браузер умеет WebP (Images\WebpSupport::browser) — картинки подменяются на WebP-копии
+     * @param bool $fragment HTML-фрагмент из ответа AJAX: относительные адреса в нём считаются от страницы, куда
+     *                       его вставят, а не от $pagePath, — их не трогаем
      */
     public function __construct(
         public readonly Config $config,
@@ -36,6 +39,8 @@ final class Context
         public readonly string $pagePath = '/',
         public readonly array $localHosts = [],
         public readonly bool $previewCritical = false,
+        public readonly bool $webp = false,
+        public readonly bool $fragment = false,
     ) {
     }
 

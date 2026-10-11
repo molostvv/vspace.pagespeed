@@ -62,6 +62,16 @@ final class Document
         return $doc->locateSections() ? $doc : null;
     }
 
+    /** HTML-фрагмент (ответ AJAX-запроса): весь текст считается содержимым body, head пустой. */
+    public static function fromFragment(string $html): self
+    {
+        $doc = new self($html);
+        $doc->scanRawRanges();
+        $doc->headOpenEnd = $doc->headEnd = $doc->bodyStart = $doc->bodyOpenEnd = 0;
+        $doc->bodyEnd = $doc->length;
+        return $doc;
+    }
+
     /**
      * Все теги документа вне защищённых областей, по порядку.
      * @return list<array{pos:int,end:int,name:string,close:bool,attrs:string}>

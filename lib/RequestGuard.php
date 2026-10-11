@@ -6,7 +6,8 @@ use Bitrix\Main\Context as BitrixContext;
 
 /**
  * Решает, оптимизировать ли текущий ответ. Обрабатываются только обычные GET-страницы сайта в HTML:
- * не админка, не AJAX, не режим правки, не /bitrix/, не страницы и домены из исключений.
+ * не админка, не AJAX, не режим правки, не /bitrix/, не страницы и домены из исключений. Отдельно —
+ * HTML-фрагменты из ответов AJAX (блоки, которые страница подгружает скриптом): в них подменяется только WebP.
  *
  * Отладочные параметры (для администратора или при DEBUG_PARAMS=Y):
  *   ?vps=off          — страница без оптимизации (сравнить «до/после»);
@@ -21,8 +22,9 @@ final class RequestGuard
     /**
      * Причина пропуска или null, если страницу можно обрабатывать.
      * @param string|null $content тело ответа; null — проверка до формирования ответа (без проверок содержимого)
+     * @param bool $fragment проверка для AJAX-ответа с HTML-фрагментом (а не для страницы)
      */
-    public static function skipReason(Config $config, ?string $content = null): ?string
+    public static function skipReason(Config $config, ?string $content = null, bool $fragment = false): ?string
     {
         if (!$config->active) {
             return 'inactive';
@@ -37,10 +39,9 @@ final class RequestGuard
         if (!in_array($request->getRequestMethod(), ['GET', 'HEAD'], true)) {
             return 'method';
         }
-        if ($request->isAjaxRequest() || $request->get('bxajaxid') !== null
-            || (defined('PUBLIC_AJAX_MODE') && PUBLIC_AJAX_MODE === true)
-        ) {
-            return 'ajax';
+        $ajax = $request->isAjaxRequest() || $request->get('bxajaxid') !== null || (defined('PUBLIC_AJAX_MODE') && PUBLIC_AJAX_MODE === true);
+        if ($ajax !== $fragment) {
+            return $fragment ? 'not-ajax' : 'ajax';
         }
         $path = self::path();
         if (str_starts_with($path, '/bitrix/')) {
@@ -63,7 +64,9 @@ final class RequestGuard
             if (strlen($content) > self::MAX_HTML_SIZE) {
                 return 'size';
             }
-            if (!preg_match('/^\s*(?:<!--.*?-->\s*)*<(?:!doctype\s+html|html)[\s>]/is', substr($content, 0, 2048))) {
+            $head = substr($content, 0, 2048);
+            // страница — документ HTML; фрагмент — разметка (не JSON, не XML)
+            if ($fragment ? !preg_match('/^\s*<(?!\?xml)/i', $head) : !preg_match('/^\s*(?:<!--.*?-->\s*)*<(?:!doctype\s+html|html)[\s>]/is', $head)) {
                 return 'not-html';
             }
             foreach (headers_list() as $header) {

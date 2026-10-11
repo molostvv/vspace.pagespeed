@@ -7,7 +7,7 @@ $MESS['VPS_OPT_TAB_GENERAL_TITLE'] = 'Activation and exclusions';
 $MESS['VPS_OPT_TAB_CRITICAL'] = 'Critical CSS';
 $MESS['VPS_OPT_TAB_CRITICAL_TITLE'] = 'Above-the-fold styles';
 $MESS['VPS_OPT_TAB_IMAGES'] = 'Images';
-$MESS['VPS_OPT_TAB_IMAGES_TITLE'] = 'Image loading';
+$MESS['VPS_OPT_TAB_IMAGES_TITLE'] = 'Image loading and WebP';
 $MESS['VPS_OPT_TAB_CACHE'] = 'Cache and check';
 $MESS['VPS_OPT_TAB_CACHE_TITLE'] = 'Module cache and page check';
 
@@ -18,7 +18,7 @@ $MESS['VPS_OPT_EXCLUDE_URLS_HINT'] = 'One rule per line. <code>/personal/</code>
 $MESS['VPS_OPT_EXCLUDE_HOSTS'] = 'Skip domains';
 $MESS['VPS_OPT_EXCLUDE_HOSTS_HINT'] = 'One per line. <code>design-demis.ru</code> — domain and its www; <code>crm.</code> — domains starting with crm.; <code>*.demis.ru</code> — mask.';
 $MESS['VPS_OPT_AMMINA_DISABLE'] = 'Turn off in Ammina what this module does';
-$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'On pages processed by this module ammina.optimizer gets its CSS block (merging and its critical CSS — when critical CSS is on) and its lazyload (when images are on) turned off. WebP, deferred JS and the rest of Ammina keep working. Needed while Ammina is installed.';
+$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'On pages processed by this module ammina.optimizer gets its CSS block (merging and its critical CSS — when critical CSS is on), its lazyload (when lazy loading is on) and its images block (its WebP — when WebP copies are on and the conversion agent runs from cron) turned off. Deferred JS and the rest of Ammina keep working. Needed while Ammina is installed.';
 $MESS['VPS_OPT_DEBUG_PARAMS'] = 'Debug parameters for everyone';
 $MESS['VPS_OPT_DEBUG_PARAMS_HINT'] = '<code>?vps=off</code>, <code>?vps_critical=only</code>, <code>?vps_debug=1</code> always work for administrators; with this option — for any visitor. Do not enable on production.';
 
@@ -62,6 +62,26 @@ $MESS['VPS_OPT_CRITICAL_MAX_SIZE_HINT'] = 'If larger, the page is served unchang
 
 $MESS['VPS_OPT_IMAGES_ACTIVE'] = 'Lazy image loading';
 $MESS['VPS_OPT_IMAGES_ACTIVE_HINT'] = 'The fold is the same as for critical CSS. Above the fold images lose <code>loading="lazy"</code> and the hero background (the first <code>style</code> background after the content start) is preloaded with high priority. Below the fold and inside hidden menus <code>&lt;img&gt;</code> and <code>&lt;iframe&gt;</code> get <code>loading="lazy"</code>, <code>style</code> backgrounds are loaded by a script when they approach the viewport. Elements with <code>data-lazy="N"</code> or <code>data-vps-skip</code> are left alone.';
+$MESS['VPS_OPT_WEBP_ACTIVE'] = 'WebP copies of images';
+$MESS['VPS_OPT_WEBP_ACTIVE_HINT'] = 'Browsers that support WebP get WebP copies instead of the site JPEG/PNG (5–15 times lighter on this site): in <code>src</code>, <code>srcset</code>, <code>style</code> backgrounds and image data attributes used by scripts. Copies are made by the module agent once a minute from cron (GD, quality 80) and stored in <code>/upload/vspace.pagespeed/webp/</code>. Pages never wait for conversion: until a copy exists the original is served. Images in CSS files are not changed.';
+$MESS['VPS_OPT_HEADING_WEBP'] = 'WebP copies (/upload/vspace.pagespeed/webp/)';
+$MESS['VPS_OPT_WEBP_CRON'] = 'Conversion agent from cron';
+$MESS['VPS_OPT_WEBP_CRON_AGO'] = 'ran #AGO# ago';
+$MESS['VPS_OPT_WEBP_CRON_NEVER'] = 'has never run yet';
+$MESS['VPS_OPT_WEBP_FILES'] = 'Ready copies';
+$MESS['VPS_OPT_WEBP_ORIGINALS'] = 'Originals kept';
+$MESS['VPS_OPT_WEBP_ORIGINALS_HINT'] = 'WebP was not smaller than the original (small icons, already compressed PNG) or the image cannot be converted (CMYK, huge size, error — see the log). Not converted again until the original changes.';
+$MESS['VPS_OPT_WEBP_QUEUE'] = 'Waiting for conversion';
+$MESS['VPS_OPT_WEBP_CLEAR'] = 'Delete WebP copies';
+$MESS['VPS_OPT_WEBP_CLEARED'] = 'WebP copies and the queue are deleted. New copies will appear as pages are opened.';
+$MESS['VPS_OPT_WEBP_NO_GD'] = 'WebP copies are not made: PHP on the server is built without WebP support in GD (no imagewebp function).';
+$MESS['VPS_OPT_WEBP_NO_CRON'] = 'WebP copies are not made: agents do not run from cron';
+$MESS['VPS_OPT_WEBP_NO_CRON_HITS'] = 'Bitrix agents run on visitor hits, while WebP conversion (up to 20 seconds per run) works only in an agent run from cron, so as not to delay pages. Move agents to cron — <a href="#HELP#" target="_blank">how to do it</a>. Until copies exist browsers get the original JPEG/PNG (or Ammina WebP if it is installed).';
+$MESS['VPS_OPT_WEBP_NO_CRON_SILENT'] = 'Agents are set to run from cron, but the conversion agent #AGO#: the cron job seems not to run. Check that cron runs <code>bitrix/modules/main/tools/cron_events.php</code> every minute — <a href="#HELP#" target="_blank">details</a>. Until copies exist browsers get the original JPEG/PNG (or Ammina WebP if it is installed).';
+$MESS['VPS_OPT_AGO_S'] = '#N# s';
+$MESS['VPS_OPT_AGO_M'] = '#N# min';
+$MESS['VPS_OPT_AGO_H'] = '#N# h';
+$MESS['VPS_OPT_AGO_D'] = '#N# d';
 
 $MESS['VPS_OPT_CACHE_TTL_DAYS'] = 'Delete unused cache after, days';
 $MESS['VPS_OPT_HEADING_PSI'] = 'PageSpeed Insights measurements';

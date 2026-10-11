@@ -23,14 +23,13 @@ class vspace_pagespeed extends CModule
 
     /**
      * Обработчики main: [событие, метод, сортировка]. OnEndBufferContent — после ammina.optimizer (1000),
-     * чтобы работать с её итоговым HTML; OnBeforeEndBufferContent — до неё (выключение её CSS).
+     * чтобы работать с её итоговым HTML; OnBeforeEndBufferContent — до неё (выключение её блоков, AMMINA_DISABLE).
      */
     private const EVENTS = [
         ['OnBeforeEndBufferContent', 'onBeforeEndBufferContent', 100],
         ['OnEndBufferContent', 'onEndBufferContent', 1100],
     ];
     private const HANDLER_CLASS = '\\Vspace\\PageSpeed\\EventHandler';
-    private const AGENT = '\\Vspace\\PageSpeed\\Agent::cleanup();';
     /** Заглушки страниц админки (install/admin/ -> /bitrix/admin/): инструкция модуля. */
     private const ADMIN_FILES = ['vspace_pagespeed_help.php'];
 
@@ -51,15 +50,10 @@ class vspace_pagespeed extends CModule
         foreach (self::EVENTS as [$event, $method, $sort]) {
             $eventManager->registerEventHandler('main', $event, $this->MODULE_ID, self::HANDLER_CLASS, $method, $sort);
         }
-        CAgent::AddAgent(
-            self::AGENT,
-            $this->MODULE_ID,
-            'N',
-            86400,
-            '',
-            'Y',
-            \Bitrix\Main\Type\DateTime::createFromTimestamp(time() + 3600)->toString()
-        );
+        // агенты: очистка кеша раз в сутки, конвертация WebP раз в минуту (список — Agent::AGENTS)
+        if (Loader::includeModule($this->MODULE_ID)) {
+            \Vspace\PageSpeed\Agent::register();
+        }
         return true;
     }
 
@@ -105,7 +99,9 @@ class vspace_pagespeed extends CModule
     public function DoUninstall()
     {
         if (Loader::includeModule($this->MODULE_ID)) {
-            \Vspace\PageSpeed\Optimizer::storage(rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/'))->clear();
+            $root = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/');
+            \Vspace\PageSpeed\Optimizer::storage($root)->clear();
+            (new \Vspace\PageSpeed\Images\WebpStore($root))->clear();
         }
         $this->UnInstallEvents();
         $this->UnInstallFiles();

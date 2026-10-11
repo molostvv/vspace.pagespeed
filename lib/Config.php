@@ -49,6 +49,8 @@ final class Config
 
         // картинки: без lazy в первом экране, preload фона hero, lazy ниже (img/iframe — нативно, фоны — скриптом)
         'IMAGES_ACTIVE' => 'Y',
+        // WebP-копии JPEG/PNG (конвертирует агент из cron) для браузеров с WebP
+        'WEBP_ACTIVE' => 'Y',
 
         'CACHE_TTL_DAYS' => 30,
 
@@ -92,6 +94,7 @@ final class Config
     public readonly int $criticalMaxSize;
 
     public readonly bool $imagesActive;
+    public readonly bool $webpActive;
 
     public readonly int $cacheTtlDays;
 
@@ -127,6 +130,7 @@ final class Config
         $this->criticalMaxSize = max(0, (int)$v['CRITICAL_MAX_SIZE']);
 
         $this->imagesActive = self::flag($v['IMAGES_ACTIVE']);
+        $this->webpActive = self::flag($v['WEBP_ACTIVE']);
 
         $this->cacheTtlDays = max(1, (int)$v['CACHE_TTL_DAYS']);
 
