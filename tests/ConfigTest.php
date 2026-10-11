@@ -22,7 +22,8 @@ final class ConfigTest extends TestCase
 
     public function testExcludeTemplates(): void
     {
-        $this->assertSame(['demis_group'], (new Config())->excludeTemplates);
+        $this->assertSame(['demis_group', 'black_theme', 'black_theme_sidebar', 'black_theme_sidebar_white', 'seo_dark', 'seo_light', 'double_d'],
+            (new Config())->excludeTemplates);
         $this->assertSame(['demis_group', 'seo_dark'], (new Config(['EXCLUDE_TEMPLATES' => "Demis_Group\r\n seo_dark "]))->excludeTemplates);
         $this->assertSame([], (new Config(['EXCLUDE_TEMPLATES' => '']))->excludeTemplates);
     }

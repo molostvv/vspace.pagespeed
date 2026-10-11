@@ -17,8 +17,9 @@ final class Config
         'EXCLUDE_URLS' => "/personal/\n/api/",
         // те же домены, что исключены у ammina.optimizer
         'EXCLUDE_HOSTS' => "crm.\ndouble-d.\ndesign-demis.ru",
-        // demis_group — redesign: пока не решено, будет ли он развиваться, поэтому его не оптимизируем и не замеряем
-        'EXCLUDE_TEMPLATES' => 'demis_group',
+        // demis_group — redesign: пока не решено, будет ли он развиваться; black_theme*, seo_dark, seo_light —
+        // старые SEO-лендинги (/services/seo-prodvizhenie-2/ и т. п.), double_d — /double_d/: модуль их не трогает
+        'EXCLUDE_TEMPLATES' => "demis_group\nblack_theme\nblack_theme_sidebar\nblack_theme_sidebar_white\nseo_dark\nseo_light\ndouble_d",
         'DEBUG_PARAMS' => 'N',
         'AMMINA_DISABLE' => 'Y',
 
