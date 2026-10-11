@@ -1,0 +1,77 @@
+<?php
+$MESS['VPS_OPT_HELP'] = 'Module manual';
+$MESS['VPS_OPT_HELP_HINT'] = 'how the module works, what to configure and how to check pages.';
+
+$MESS['VPS_OPT_TAB_GENERAL'] = 'General';
+$MESS['VPS_OPT_TAB_GENERAL_TITLE'] = 'Activation and exclusions';
+$MESS['VPS_OPT_TAB_CRITICAL'] = 'Critical CSS';
+$MESS['VPS_OPT_TAB_CRITICAL_TITLE'] = 'Above-the-fold styles';
+$MESS['VPS_OPT_TAB_CACHE'] = 'Cache and check';
+$MESS['VPS_OPT_TAB_CACHE_TITLE'] = 'Module cache and page check';
+
+$MESS['VPS_OPT_ACTIVE'] = 'Module enabled';
+$MESS['VPS_OPT_ACTIVE_HINT'] = 'Settings apply to the whole site including subdomains; use the lists below to exclude.';
+$MESS['VPS_OPT_EXCLUDE_URLS'] = 'Skip pages';
+$MESS['VPS_OPT_EXCLUDE_URLS_HINT'] = 'One rule per line. <code>/personal/</code> — prefix; <code>/services/*-redesign/</code> — mask (* = any characters); <code>~^/test/\d+/$</code> — regular expression.';
+$MESS['VPS_OPT_EXCLUDE_HOSTS'] = 'Skip domains';
+$MESS['VPS_OPT_EXCLUDE_HOSTS_HINT'] = 'One per line. <code>design-demis.ru</code> — domain and its www; <code>crm.</code> — domains starting with crm.; <code>*.demis.ru</code> — mask.';
+$MESS['VPS_OPT_AMMINA_DISABLE_CSS'] = 'Disable Ammina CSS optimization';
+$MESS['VPS_OPT_AMMINA_DISABLE_CSS_HINT'] = 'On pages processed by this module the CSS block of ammina.optimizer (merging and its critical CSS) is turned off; the rest of Ammina keeps working. Needed while Ammina is installed.';
+$MESS['VPS_OPT_DEBUG_PARAMS'] = 'Debug parameters for everyone';
+$MESS['VPS_OPT_DEBUG_PARAMS_HINT'] = '<code>?vps=off</code>, <code>?vps_critical=only</code>, <code>?vps_debug=1</code> always work for administrators; with this option — for any visitor. Do not enable on production.';
+
+$MESS['VPS_OPT_CRITICAL_ACTIVE'] = 'Critical CSS enabled';
+$MESS['VPS_OPT_HEADING_FOLD'] = 'Above the fold';
+$MESS['VPS_OPT_FOLD_START_CLASSES'] = 'Content start (classes)';
+$MESS['VPS_OPT_FOLD_START_CLASSES_HINT'] = 'Blocks are counted after this element. The header before it is always above the fold. If missing, blocks are counted from the start of body.';
+$MESS['VPS_OPT_FOLD_BLOCK_CLASSES'] = 'Content blocks (classes)';
+$MESS['VPS_OPT_FOLD_BLOCK_CLASSES_HINT'] = 'Classes of top-level page blocks: panels, sections, list cards (on pages without panels). Nested blocks are not counted.';
+$MESS['VPS_OPT_FOLD_BLOCKS'] = 'Blocks above the fold';
+$MESS['VPS_OPT_FOLD_BLOCKS_HINT'] = 'The fold is the start of the next block. On a single page the fold can be set exactly with <code>&lt;!--vps-fold--&gt;</code> in the markup.';
+$MESS['VPS_OPT_FOLD_MAX_BYTES'] = 'Fold limit, bytes of HTML';
+$MESS['VPS_OPT_FOLD_MAX_BYTES_HINT'] = 'Not farther than this from the content start — for pages without blocks (articles). 0 — no limit.';
+$MESS['VPS_OPT_FOLD_SKIP_CLASSES'] = 'Elements hidden on load';
+$MESS['VPS_OPT_FOLD_SKIP_CLASSES_HINT'] = 'Dropdown menus, popups, collapsed forms: styles of the element itself go to critical (so it stays hidden), styles of its content do not.';
+$MESS['VPS_OPT_ADD_CLASSES'] = 'Always include classes';
+$MESS['VPS_OPT_ADD_CLASSES_HINT'] = 'Elements visible immediately though placed below the fold in the code (cookie banner, fixed buttons) — included with their content. And classes added by scripts on load (select widgets, sliders).';
+$MESS['VPS_OPT_ADD_IDS'] = 'Always include ids';
+$MESS['VPS_OPT_HEADING_FILES'] = 'Stylesheets';
+$MESS['VPS_OPT_EXCLUDE_FILES'] = 'Leave CSS files untouched';
+$MESS['VPS_OPT_EXCLUDE_FILES_HINT'] = 'File paths (same rules as pages). Such files stay render-blocking and are not used for critical CSS.';
+$MESS['VPS_OPT_INLINE_STYLES'] = 'Process large &lt;style&gt; in head';
+$MESS['VPS_OPT_INLINE_STYLES_HINT'] = 'Content is saved to a cache file and loaded like a regular stylesheet: only what the first screen needs stays in HTML.';
+$MESS['VPS_OPT_INLINE_STYLES_MIN'] = 'Minimum &lt;style&gt; size, bytes';
+$MESS['VPS_OPT_ASYNC_MODE'] = 'Full CSS loading';
+$MESS['VPS_OPT_ASYNC_MODE_PRELOAD'] = 'preload + apply on load (faster)';
+$MESS['VPS_OPT_ASYNC_MODE_PRINT'] = 'media=print only (low priority)';
+$MESS['VPS_OPT_HEADING_CONTENT'] = 'Critical CSS content';
+$MESS['VPS_OPT_DROP_INTERACTION'] = 'Without :hover, :focus, :active';
+$MESS['VPS_OPT_DROP_INTERACTION_HINT'] = 'Interaction states are not needed before the first user action — the full CSS brings them.';
+$MESS['VPS_OPT_FONT_FACE'] = 'Font declarations (@font-face)';
+$MESS['VPS_OPT_FONT_FACE_USED'] = 'only used above the fold';
+$MESS['VPS_OPT_FONT_FACE_ALL'] = 'all';
+$MESS['VPS_OPT_FONT_FACE_NONE'] = 'none';
+$MESS['VPS_OPT_FONT_DISPLAY_SWAP'] = 'Add font-display: swap';
+$MESS['VPS_OPT_FONT_DISPLAY_SWAP_HINT'] = 'Text is shown immediately with a system font while the web font loads.';
+$MESS['VPS_OPT_CRITICAL_MAX_SIZE'] = 'Maximum critical CSS size, bytes';
+$MESS['VPS_OPT_CRITICAL_MAX_SIZE_HINT'] = 'If larger, the page is served unchanged (a sign of bad fold settings). 0 — unlimited.';
+
+$MESS['VPS_OPT_CACHE_TTL_DAYS'] = 'Delete unused cache after, days';
+$MESS['VPS_OPT_HEADING_PSI'] = 'PageSpeed Insights measurements';
+$MESS['VPS_OPT_PSI_API_KEY'] = 'PageSpeed Insights API key';
+$MESS['VPS_OPT_PSI_API_KEY_HINT'] = 'Used by the measurement script <code>tools/psi.php</code> (see the manual). Get it in Google Cloud Console: enable «PageSpeed Insights API» → Credentials → API key, free. Does not affect the module itself.';
+$MESS['VPS_OPT_HEADING_STATS'] = 'Module cache (/bitrix/cache/vspace.pagespeed/)';
+$MESS['VPS_OPT_STATS_CRITICAL'] = 'Critical CSS';
+$MESS['VPS_OPT_STATS_INDEX'] = 'Stylesheet indexes';
+$MESS['VPS_OPT_STATS_PUBLIC'] = 'Extracted &lt;style&gt;';
+$MESS['VPS_OPT_STATS_VALUE'] = '#FILES# file(s), #SIZE#';
+$MESS['VPS_OPT_CLEAR_CACHE'] = 'Clear module cache';
+$MESS['VPS_OPT_CACHE_CLEARED'] = 'Module cache cleared.';
+$MESS['VPS_OPT_HEADING_CHECK'] = 'Page check';
+$MESS['VPS_OPT_CHECK_URL'] = 'Page address';
+$MESS['VPS_OPT_CHECK_CRITICAL'] = 'critical CSS only';
+$MESS['VPS_OPT_CHECK_OFF'] = 'without the module';
+$MESS['VPS_OPT_CHECK_DEBUG'] = 'with statistics';
+$MESS['VPS_OPT_CHECK_HINT'] = '"Critical CSS only" — the page without full stylesheets: the first screen must look as usual; below it the layout may break, which is expected. Statistics — in a comment at the end of HTML and in the X-Vspace-PageSpeed header.';
+
+$MESS['VPS_OPT_ERR_RANGE'] = '"#NAME#": an integer from #MIN# to #MAX# is required.';

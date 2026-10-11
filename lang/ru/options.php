@@ -1,0 +1,77 @@
+<?php
+$MESS['VPS_OPT_HELP'] = 'Инструкция по модулю';
+$MESS['VPS_OPT_HELP_HINT'] = 'как устроен модуль, что настраивать и как проверять страницы.';
+
+$MESS['VPS_OPT_TAB_GENERAL'] = 'Общие';
+$MESS['VPS_OPT_TAB_GENERAL_TITLE'] = 'Включение и исключения';
+$MESS['VPS_OPT_TAB_CRITICAL'] = 'Critical CSS';
+$MESS['VPS_OPT_TAB_CRITICAL_TITLE'] = 'Стили первого экрана';
+$MESS['VPS_OPT_TAB_CACHE'] = 'Кеш и проверка';
+$MESS['VPS_OPT_TAB_CACHE_TITLE'] = 'Кеш модуля и проверка страниц';
+
+$MESS['VPS_OPT_ACTIVE'] = 'Модуль включён';
+$MESS['VPS_OPT_ACTIVE_HINT'] = 'Настройки действуют на весь сайт, включая поддомены; отключение — списками ниже.';
+$MESS['VPS_OPT_EXCLUDE_URLS'] = 'Не обрабатывать страницы';
+$MESS['VPS_OPT_EXCLUDE_URLS_HINT'] = 'По одному правилу в строке. <code>/personal/</code> — все адреса, начинающиеся так; <code>/services/*-redesign/</code> — маска (* — любые символы); <code>~^/test/\d+/$</code> — регулярное выражение.';
+$MESS['VPS_OPT_EXCLUDE_HOSTS'] = 'Не обрабатывать домены';
+$MESS['VPS_OPT_EXCLUDE_HOSTS_HINT'] = 'По одному в строке. <code>design-demis.ru</code> — домен и его www; <code>crm.</code> — домены, начинающиеся с crm.; <code>*.demis.ru</code> — маска.';
+$MESS['VPS_OPT_AMMINA_DISABLE_CSS'] = 'Выключать CSS-оптимизацию Ammina';
+$MESS['VPS_OPT_AMMINA_DISABLE_CSS_HINT'] = 'На страницах, которые обрабатывает модуль, у ammina.optimizer отключается блок CSS (объединение и её critical), остальное у неё продолжает работать. Нужно, пока Ammina установлена.';
+$MESS['VPS_OPT_DEBUG_PARAMS'] = 'Отладочные параметры для всех';
+$MESS['VPS_OPT_DEBUG_PARAMS_HINT'] = 'Параметры <code>?vps=off</code>, <code>?vps_critical=only</code>, <code>?vps_debug=1</code> работают у администраторов всегда, с этой галкой — у любого посетителя. На рабочем сайте не включать.';
+
+$MESS['VPS_OPT_CRITICAL_ACTIVE'] = 'Critical CSS включён';
+$MESS['VPS_OPT_HEADING_FOLD'] = 'Первый экран';
+$MESS['VPS_OPT_FOLD_START_CLASSES'] = 'Начало контента (классы)';
+$MESS['VPS_OPT_FOLD_START_CLASSES_HINT'] = 'Элемент, после которого считаются блоки. Шапка до него входит в первый экран всегда. Если на странице его нет, блоки считаются с начала body.';
+$MESS['VPS_OPT_FOLD_BLOCK_CLASSES'] = 'Блоки контента (классы)';
+$MESS['VPS_OPT_FOLD_BLOCK_CLASSES_HINT'] = 'Классы верхнеуровневых блоков страницы: панели, секции, карточки списков (на страницах без панелей). Вложенные блоки не считаются.';
+$MESS['VPS_OPT_FOLD_BLOCKS'] = 'Блоков в первом экране';
+$MESS['VPS_OPT_FOLD_BLOCKS_HINT'] = 'Граница первого экрана — начало следующего блока. На отдельной странице границу можно задать точно, поставив в разметку <code>&lt;!--vps-fold--&gt;</code>.';
+$MESS['VPS_OPT_FOLD_MAX_BYTES'] = 'Предел первого экрана, байт HTML';
+$MESS['VPS_OPT_FOLD_MAX_BYTES_HINT'] = 'Не дальше этого от начала контента — для страниц без блоков (статьи). 0 — без предела.';
+$MESS['VPS_OPT_FOLD_SKIP_CLASSES'] = 'Скрытые при загрузке элементы';
+$MESS['VPS_OPT_FOLD_SKIP_CLASSES_HINT'] = 'Выпадающие меню, попапы, свёрнутые формы: стили самого элемента попадают в critical (чтобы он оставался скрытым), стили содержимого — нет. Сильно уменьшает critical за счёт мега-меню.';
+$MESS['VPS_OPT_ADD_CLASSES'] = 'Всегда включать классы';
+$MESS['VPS_OPT_ADD_CLASSES_HINT'] = 'Элементы, которые видны сразу, хотя в коде стоят ниже первого экрана (cookie-баннер, фиксированные кнопки), — учитываются вместе с содержимым. И классы, которые добавляет скрипт при загрузке (виджеты select, слайдеры).';
+$MESS['VPS_OPT_ADD_IDS'] = 'Всегда включать id';
+$MESS['VPS_OPT_HEADING_FILES'] = 'Подключение CSS';
+$MESS['VPS_OPT_EXCLUDE_FILES'] = 'Не трогать CSS-файлы';
+$MESS['VPS_OPT_EXCLUDE_FILES_HINT'] = 'Пути файлов (правила как у страниц). Такие файлы остаются блокирующими и не входят в critical.';
+$MESS['VPS_OPT_INLINE_STYLES'] = 'Обрабатывать крупные &lt;style&gt; в head';
+$MESS['VPS_OPT_INLINE_STYLES_HINT'] = 'Содержимое сохраняется в файл кеша и подключается как обычный CSS: в HTML остаётся только нужное первому экрану.';
+$MESS['VPS_OPT_INLINE_STYLES_MIN'] = 'Минимальный размер &lt;style&gt;, байт';
+$MESS['VPS_OPT_ASYNC_MODE'] = 'Загрузка полного CSS';
+$MESS['VPS_OPT_ASYNC_MODE_PRELOAD'] = 'preload + применение после загрузки (быстрее)';
+$MESS['VPS_OPT_ASYNC_MODE_PRINT'] = 'только media=print (низкий приоритет)';
+$MESS['VPS_OPT_HEADING_CONTENT'] = 'Состав critical CSS';
+$MESS['VPS_OPT_DROP_INTERACTION'] = 'Без :hover, :focus, :active';
+$MESS['VPS_OPT_DROP_INTERACTION_HINT'] = 'Стили состояний взаимодействия не нужны до первого действия пользователя — их принесёт полный CSS.';
+$MESS['VPS_OPT_FONT_FACE'] = 'Подключения шрифтов (@font-face)';
+$MESS['VPS_OPT_FONT_FACE_USED'] = 'только используемые первым экраном';
+$MESS['VPS_OPT_FONT_FACE_ALL'] = 'все';
+$MESS['VPS_OPT_FONT_FACE_NONE'] = 'не включать';
+$MESS['VPS_OPT_FONT_DISPLAY_SWAP'] = 'Добавлять font-display: swap';
+$MESS['VPS_OPT_FONT_DISPLAY_SWAP_HINT'] = 'Текст виден сразу системным шрифтом, пока грузится веб-шрифт.';
+$MESS['VPS_OPT_CRITICAL_MAX_SIZE'] = 'Максимальный размер critical, байт';
+$MESS['VPS_OPT_CRITICAL_MAX_SIZE_HINT'] = 'Если больше — страница отдаётся без изменений (признак неудачных настроек первого экрана). 0 — без ограничения.';
+
+$MESS['VPS_OPT_CACHE_TTL_DAYS'] = 'Удалять неиспользуемый кеш через, дней';
+$MESS['VPS_OPT_HEADING_PSI'] = 'Замеры PageSpeed Insights';
+$MESS['VPS_OPT_PSI_API_KEY'] = 'Ключ API PageSpeed Insights';
+$MESS['VPS_OPT_PSI_API_KEY_HINT'] = 'Для скрипта замеров <code>tools/psi.php</code> (описание — в инструкции). Ключ: Google Cloud Console → включить «PageSpeed Insights API» → «Учётные данные» → «Ключ API», бесплатно. На работу модуля не влияет.';
+$MESS['VPS_OPT_HEADING_STATS'] = 'Кеш модуля (/bitrix/cache/vspace.pagespeed/)';
+$MESS['VPS_OPT_STATS_CRITICAL'] = 'Critical CSS';
+$MESS['VPS_OPT_STATS_INDEX'] = 'Индексы CSS-файлов';
+$MESS['VPS_OPT_STATS_PUBLIC'] = 'Вынесенные &lt;style&gt;';
+$MESS['VPS_OPT_STATS_VALUE'] = '#FILES# файл(ов), #SIZE#';
+$MESS['VPS_OPT_CLEAR_CACHE'] = 'Очистить кеш модуля';
+$MESS['VPS_OPT_CACHE_CLEARED'] = 'Кеш модуля очищен.';
+$MESS['VPS_OPT_HEADING_CHECK'] = 'Проверка страницы';
+$MESS['VPS_OPT_CHECK_URL'] = 'Адрес страницы';
+$MESS['VPS_OPT_CHECK_CRITICAL'] = 'только critical CSS';
+$MESS['VPS_OPT_CHECK_OFF'] = 'без модуля';
+$MESS['VPS_OPT_CHECK_DEBUG'] = 'со статистикой';
+$MESS['VPS_OPT_CHECK_HINT'] = '«Только critical CSS» — страница без полных стилей: первый экран должен выглядеть так же, как обычно; ниже вёрстка может разваливаться — так и задумано. Статистика — в комментарии в конце HTML и в заголовке X-Vspace-PageSpeed.';
+
+$MESS['VPS_OPT_ERR_RANGE'] = '«#NAME#»: нужно целое число от #MIN# до #MAX#.';
