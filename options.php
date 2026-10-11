@@ -43,6 +43,7 @@ $vpsTabs = [
         'ACTIVE' => 'checkbox',
         'EXCLUDE_URLS' => 'textarea',
         'EXCLUDE_HOSTS' => 'textarea',
+        'EXCLUDE_TEMPLATES' => 'textarea',
         'AMMINA_DISABLE' => 'checkbox',
         'DEBUG_PARAMS' => 'checkbox',
     ],

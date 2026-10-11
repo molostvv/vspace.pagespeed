@@ -19,4 +19,11 @@ final class ConfigTest extends TestCase
         $config = new Config(['FOLD_BLOCK_CLASSES' => "panel, section\npanel  hero"]);
         $this->assertSame(['panel', 'section', 'hero'], $config->foldBlockClasses);
     }
+
+    public function testExcludeTemplates(): void
+    {
+        $this->assertSame(['demis_group'], (new Config())->excludeTemplates);
+        $this->assertSame(['demis_group', 'seo_dark'], (new Config(['EXCLUDE_TEMPLATES' => "Demis_Group\r\n seo_dark "]))->excludeTemplates);
+        $this->assertSame([], (new Config(['EXCLUDE_TEMPLATES' => '']))->excludeTemplates);
+    }
 }

@@ -4,7 +4,7 @@ namespace Vspace\PageSpeed;
 
 /**
  * Настройки модуля одним неизменяемым объектом. Настройки общие для всего сайта (без профилей по сайтам и
- * страницам): отключение — списками страниц (EXCLUDE_URLS) и доменов (EXCLUDE_HOSTS).
+ * страницам): отключение — списками страниц (EXCLUDE_URLS), доменов (EXCLUDE_HOSTS) и шаблонов (EXCLUDE_TEMPLATES).
  *
  * Ядро (Css, Html, Critical) получает только этот объект и не обращается к Битриксу — поэтому его можно
  * тестировать без ядра. Из \Bitrix\Main\Config\Option объект собирает Options::config().
@@ -17,12 +17,14 @@ final class Config
         'EXCLUDE_URLS' => "/personal/\n/api/",
         // те же домены, что исключены у ammina.optimizer
         'EXCLUDE_HOSTS' => "crm.\ndouble-d.\ndesign-demis.ru",
+        // demis_group — redesign: пока не решено, будет ли он развиваться, поэтому его не оптимизируем и не замеряем
+        'EXCLUDE_TEMPLATES' => 'demis_group',
         'DEBUG_PARAMS' => 'N',
         'AMMINA_DISABLE' => 'Y',
 
         'CRITICAL_ACTIVE' => 'Y',
-        // redesign (шаблон demis_group): шрифт Manrope (TTF) приходит после ранней отрисовки, и его подмена
-        // сдвигает hero — CLS 0.13 против 0.01 без critical; картинки там работают
+        // redesign (шаблон demis_group), если убрать его из EXCLUDE_TEMPLATES: шрифт Manrope (TTF) приходит
+        // после ранней отрисовки, и его подмена сдвигает hero — CLS 0.13 против 0.01 без critical
         'CRITICAL_EXCLUDE_URLS' => "*-redesign/*\n/redesign/",
         'FOLD_START_CLASSES' => 'page__content',
         // блоки контента: panel* — шаблон demis_edges, section — demis_group (redesign), page__shares__row и
@@ -67,6 +69,8 @@ final class Config
     public readonly array $excludeUrls;
     /** @var list<string> */
     public readonly array $excludeHosts;
+    /** @var list<string> ID шаблонов сайта в нижнем регистре */
+    public readonly array $excludeTemplates;
     public readonly bool $debugParams;
     public readonly bool $amminaDisable;
 
@@ -116,6 +120,7 @@ final class Config
         $this->active = self::flag($v['ACTIVE']);
         $this->excludeUrls = self::lines($v['EXCLUDE_URLS']);
         $this->excludeHosts = self::lines($v['EXCLUDE_HOSTS']);
+        $this->excludeTemplates = self::tokens(strtolower((string)$v['EXCLUDE_TEMPLATES']));
         $this->debugParams = self::flag($v['DEBUG_PARAMS']);
         $this->amminaDisable = self::flag($v['AMMINA_DISABLE']);
 

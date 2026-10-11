@@ -6,7 +6,7 @@ use Bitrix\Main\Context as BitrixContext;
 
 /**
  * Решает, оптимизировать ли текущий ответ. Обрабатываются только обычные GET-страницы сайта в HTML:
- * не админка, не AJAX, не режим правки, не /bitrix/, не страницы и домены из исключений. Отдельно —
+ * не админка, не AJAX, не режим правки, не /bitrix/, не страницы, домены и шаблоны из исключений. Отдельно —
  * HTML-фрагменты из ответов AJAX (блоки, которые страница подгружает скриптом): в них подменяется только WebP.
  *
  * Отладочные параметры (для администратора или при DEBUG_PARAMS=Y):
@@ -56,6 +56,9 @@ final class RequestGuard
         }
         if (PathMatcher::matchPath($path, $config->excludeUrls)) {
             return 'url';
+        }
+        if (defined('SITE_TEMPLATE_ID') && in_array(strtolower(SITE_TEMPLATE_ID), $config->excludeTemplates, true)) {
+            return 'template';
         }
         if (self::debugParam('vps') === 'off') {
             return 'off';

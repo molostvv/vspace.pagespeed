@@ -47,7 +47,6 @@ const DEFAULT_PATHS = [
     '/articles/link-seo-chto-eto/',
     '/services/otraslevaya-ekspertiza/prodvizhenie-medicinskih-sajtov/',
     '/services/kontekstnaja-reklama/',
-    '/services/seo-prodvijenie-saytov-redesign/',
 ];
 
 /** Лабораторные метрики: колонка => аудит Lighthouse (numericValue, мс; CLS — без единиц). */
