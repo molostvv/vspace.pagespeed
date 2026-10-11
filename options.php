@@ -72,6 +72,10 @@ $vpsTabs = [
         'IMAGES_ACTIVE' => 'checkbox',
         'WEBP_ACTIVE' => 'checkbox',
     ],
+    'js' => [
+        'JS_ACTIVE' => 'checkbox',
+        'JS_EXCLUDE_FILES' => 'textarea',
+    ],
     'cache' => [
         'CACHE_TTL_DAYS' => [1, 365],
         '#PSI' => null,
@@ -83,6 +87,7 @@ $tabControl = new CAdminTabControl('tabControl', [
     ['DIV' => 'vps_general', 'TAB' => GetMessage('VPS_OPT_TAB_GENERAL'), 'TITLE' => GetMessage('VPS_OPT_TAB_GENERAL_TITLE')],
     ['DIV' => 'vps_critical', 'TAB' => GetMessage('VPS_OPT_TAB_CRITICAL'), 'TITLE' => GetMessage('VPS_OPT_TAB_CRITICAL_TITLE')],
     ['DIV' => 'vps_images', 'TAB' => GetMessage('VPS_OPT_TAB_IMAGES'), 'TITLE' => GetMessage('VPS_OPT_TAB_IMAGES_TITLE')],
+    ['DIV' => 'vps_js', 'TAB' => GetMessage('VPS_OPT_TAB_JS'), 'TITLE' => GetMessage('VPS_OPT_TAB_JS_TITLE')],
     ['DIV' => 'vps_cache', 'TAB' => GetMessage('VPS_OPT_TAB_CACHE'), 'TITLE' => GetMessage('VPS_OPT_TAB_CACHE_TITLE')],
 ]);
 

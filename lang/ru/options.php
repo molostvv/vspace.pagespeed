@@ -8,6 +8,8 @@ $MESS['VPS_OPT_TAB_CRITICAL'] = 'Critical CSS';
 $MESS['VPS_OPT_TAB_CRITICAL_TITLE'] = 'Стили первого экрана';
 $MESS['VPS_OPT_TAB_IMAGES'] = 'Картинки';
 $MESS['VPS_OPT_TAB_IMAGES_TITLE'] = 'Загрузка картинок и WebP';
+$MESS['VPS_OPT_TAB_JS'] = 'JavaScript';
+$MESS['VPS_OPT_TAB_JS_TITLE'] = 'Отложенный запуск скриптов';
 $MESS['VPS_OPT_TAB_CACHE'] = 'Кеш и проверка';
 $MESS['VPS_OPT_TAB_CACHE_TITLE'] = 'Кеш модуля и проверка страниц';
 
@@ -18,7 +20,7 @@ $MESS['VPS_OPT_EXCLUDE_URLS_HINT'] = 'По одному правилу в стр
 $MESS['VPS_OPT_EXCLUDE_HOSTS'] = 'Не обрабатывать домены';
 $MESS['VPS_OPT_EXCLUDE_HOSTS_HINT'] = 'По одному в строке. <code>design-demis.ru</code> — домен и его www; <code>crm.</code> — домены, начинающиеся с crm.; <code>*.demis.ru</code> — маска.';
 $MESS['VPS_OPT_AMMINA_DISABLE'] = 'Выключать у Ammina то, что делает модуль';
-$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'На страницах, которые обрабатывает модуль, у ammina.optimizer выключаются блок CSS (объединение и её critical — если включён critical CSS), lazyload (если включена отложенная загрузка) и картинки (её WebP — если включены WebP-копии и агент конвертации работает по cron). Отложенный JS и остальное у неё продолжают работать. Нужно, пока Ammina установлена.';
+$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'На страницах, которые обрабатывает модуль, у ammina.optimizer выключаются блок CSS (если включён critical CSS), lazyload (если включена отложенная загрузка), JS (если включён отложенный JS) и картинки (её WebP — если включены WebP-копии и агент конвертации работает по cron). Нужно, пока Ammina установлена; когда выключено всё, её можно удалять.';
 $MESS['VPS_OPT_DEBUG_PARAMS'] = 'Отладочные параметры для всех';
 $MESS['VPS_OPT_DEBUG_PARAMS_HINT'] = 'Параметры <code>?vps=off</code>, <code>?vps_critical=only</code>, <code>?vps_debug=1</code> работают у администраторов всегда, с этой галкой — у любого посетителя. На рабочем сайте не включать.';
 
@@ -82,6 +84,11 @@ $MESS['VPS_OPT_AGO_S'] = '#N# с';
 $MESS['VPS_OPT_AGO_M'] = '#N# мин';
 $MESS['VPS_OPT_AGO_H'] = '#N# ч';
 $MESS['VPS_OPT_AGO_D'] = '#N# дн.';
+
+$MESS['VPS_OPT_JS_ACTIVE'] = 'Отложенный JS';
+$MESS['VPS_OPT_JS_ACTIVE_HINT'] = 'Скрипты страницы выполняются после загрузки страницы (window.onload), по порядку и на прежних местах — как было у Ammina, но внешние файлы качаются параллельно. Так скрипты видят уже полный CSS (он подключается асинхронно) и не мешают первому экрану. Обработчики DOMContentLoaded и load, которые вешают отложенные скрипты, вызываются после них. Не трогаются скрипты с <code>data-skip-moving</code> или <code>data-vps-skip</code>, JSON-LD, <code>type="module"</code>.';
+$MESS['VPS_OPT_JS_EXCLUDE_FILES'] = 'Не откладывать скрипты';
+$MESS['VPS_OPT_JS_EXCLUDE_FILES_HINT'] = 'Пути файлов (правила как у страниц) или адреса внешних скриптов. Такие скрипты выполняются сразу, раньше отложенных, — значит, не должны от них зависеть (jQuery, BX). По умолчанию — исключения, которые были у Ammina.';
 
 $MESS['VPS_OPT_CACHE_TTL_DAYS'] = 'Удалять неиспользуемый кеш через, дней';
 $MESS['VPS_OPT_HEADING_PSI'] = 'Замеры PageSpeed Insights';

@@ -13,7 +13,7 @@ use Vspace\PageSpeed\Integration\AmminaBridge;
  *  - OnBeforeEndBufferContent — до обработчиков вывода: на страницах, которые обработает модуль, выключает
  *    у Ammina то же самое (AMMINA_DISABLE): CSS-оптимизацию — чтобы не было двух critical, lazyload — чтобы
  *    её заглушки не держали фон hero до window.onload, картинки (её WebP) — когда наш агент WebP работает
- *    по cron (иначе копий нет, и пусть пока работает её WebP);
+ *    по cron (иначе копий нет, и пусть пока работает её WebP), JS — его откладывает модуль;
  *  - OnEndBufferContent (сортировка 1100 — после Ammina с её 1000) — оптимизация готового HTML; в ответах
  *    AJAX с HTML-фрагментом (блоки, которые страница подгружает скриптом) — только WebP.
  * Любая ошибка модуля только пишется в лог: страница отдаётся всегда.
@@ -35,6 +35,7 @@ final class EventHandler
             $categories = array_keys(array_filter([
                 'css' => $page && $config->criticalFor(RequestGuard::path()),
                 'lazy' => $page && $config->imagesActive,
+                'js' => $page && $config->jsActive,
                 'images' => $config->webpActive && (new WebpStore(self::documentRoot()))->cronWorks(),
             ]));
             AmminaBridge::disable($categories);

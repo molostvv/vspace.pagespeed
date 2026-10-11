@@ -11,6 +11,7 @@ use Vspace\PageSpeed\Html\Edits;
 use Vspace\PageSpeed\Images\ImagesProcessor;
 use Vspace\PageSpeed\Images\WebpRewriter;
 use Vspace\PageSpeed\Images\WebpStore;
+use Vspace\PageSpeed\Js\DeferJsProcessor;
 use Vspace\PageSpeed\Processor\ProcessorInterface;
 use Vspace\PageSpeed\Storage\FileStorage;
 
@@ -29,7 +30,7 @@ final class Optimizer
     }
 
     /**
-     * Конвейер по настройкам: critical CSS, картинки (lazyload и WebP); отложенный JS добавится сюда же.
+     * Конвейер по настройкам: critical CSS, картинки (lazyload и WebP), отложенный JS.
      * Для HTML-фрагмента (ответ AJAX) — только WebP: ни head, ни первого экрана у фрагмента нет.
      */
     public static function create(Config $config, string $documentRoot, bool $fragment = false): self
@@ -52,6 +53,9 @@ final class Optimizer
         }
         if ($config->imagesActive || $config->webpActive) {
             $processors[] = new ImagesProcessor($config, $config->webpActive ? new WebpRewriter(new WebpStore($documentRoot)) : null);
+        }
+        if ($config->jsActive) {
+            $processors[] = new DeferJsProcessor($config);
         }
         return new self($processors);
     }

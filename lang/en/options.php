@@ -8,6 +8,8 @@ $MESS['VPS_OPT_TAB_CRITICAL'] = 'Critical CSS';
 $MESS['VPS_OPT_TAB_CRITICAL_TITLE'] = 'Above-the-fold styles';
 $MESS['VPS_OPT_TAB_IMAGES'] = 'Images';
 $MESS['VPS_OPT_TAB_IMAGES_TITLE'] = 'Image loading and WebP';
+$MESS['VPS_OPT_TAB_JS'] = 'JavaScript';
+$MESS['VPS_OPT_TAB_JS_TITLE'] = 'Deferred scripts';
 $MESS['VPS_OPT_TAB_CACHE'] = 'Cache and check';
 $MESS['VPS_OPT_TAB_CACHE_TITLE'] = 'Module cache and page check';
 
@@ -18,7 +20,7 @@ $MESS['VPS_OPT_EXCLUDE_URLS_HINT'] = 'One rule per line. <code>/personal/</code>
 $MESS['VPS_OPT_EXCLUDE_HOSTS'] = 'Skip domains';
 $MESS['VPS_OPT_EXCLUDE_HOSTS_HINT'] = 'One per line. <code>design-demis.ru</code> — domain and its www; <code>crm.</code> — domains starting with crm.; <code>*.demis.ru</code> — mask.';
 $MESS['VPS_OPT_AMMINA_DISABLE'] = 'Turn off in Ammina what this module does';
-$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'On pages processed by this module ammina.optimizer gets its CSS block (merging and its critical CSS — when critical CSS is on), its lazyload (when lazy loading is on) and its images block (its WebP — when WebP copies are on and the conversion agent runs from cron) turned off. Deferred JS and the rest of Ammina keep working. Needed while Ammina is installed.';
+$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'On pages processed by this module ammina.optimizer gets its CSS block (when critical CSS is on), lazyload (when lazy loading is on), JS (when deferred JS is on) and images (its WebP — when WebP copies are on and the conversion agent runs from cron) turned off. Needed while Ammina is installed; once everything is off it can be removed.';
 $MESS['VPS_OPT_DEBUG_PARAMS'] = 'Debug parameters for everyone';
 $MESS['VPS_OPT_DEBUG_PARAMS_HINT'] = '<code>?vps=off</code>, <code>?vps_critical=only</code>, <code>?vps_debug=1</code> always work for administrators; with this option — for any visitor. Do not enable on production.';
 
@@ -82,6 +84,11 @@ $MESS['VPS_OPT_AGO_S'] = '#N# s';
 $MESS['VPS_OPT_AGO_M'] = '#N# min';
 $MESS['VPS_OPT_AGO_H'] = '#N# h';
 $MESS['VPS_OPT_AGO_D'] = '#N# d';
+
+$MESS['VPS_OPT_JS_ACTIVE'] = 'Deferred JS';
+$MESS['VPS_OPT_JS_ACTIVE_HINT'] = 'Page scripts run after the page has loaded (window.onload), in order and in their original places — as Ammina did, but external files are downloaded in parallel. Scripts thus see the full CSS (it is loaded asynchronously) and do not compete with the first screen. DOMContentLoaded and load handlers registered by deferred scripts are called after them. Scripts with <code>data-skip-moving</code> or <code>data-vps-skip</code>, JSON-LD and <code>type="module"</code> are left alone.';
+$MESS['VPS_OPT_JS_EXCLUDE_FILES'] = 'Do not defer scripts';
+$MESS['VPS_OPT_JS_EXCLUDE_FILES_HINT'] = 'File paths (same rules as pages) or external script URLs. Such scripts run immediately, before deferred ones, so they must not depend on them (jQuery, BX). Default: the exclusions Ammina had.';
 
 $MESS['VPS_OPT_CACHE_TTL_DAYS'] = 'Delete unused cache after, days';
 $MESS['VPS_OPT_HEADING_PSI'] = 'PageSpeed Insights measurements';

@@ -52,6 +52,10 @@ final class Config
         // WebP-копии JPEG/PNG (конвертирует агент из cron) для браузеров с WebP
         'WEBP_ACTIVE' => 'Y',
 
+        // скрипты — после window.onload (как type="deferjs" у Ammina); исключения — те же, что у неё
+        'JS_ACTIVE' => 'Y',
+        'JS_EXCLUDE_FILES' => "/local/templates/demis_edges/scripts/import/HeaderJilin/\n/local/templates/demis_edges/js/inp.min.js",
+
         'CACHE_TTL_DAYS' => 30,
 
         // ключ Google PageSpeed Insights API для tools/psi.php (на работу модуля не влияет)
@@ -96,6 +100,10 @@ final class Config
     public readonly bool $imagesActive;
     public readonly bool $webpActive;
 
+    public readonly bool $jsActive;
+    /** @var list<string> */
+    public readonly array $jsExcludeFiles;
+
     public readonly int $cacheTtlDays;
 
     public readonly string $psiApiKey;
@@ -131,6 +139,9 @@ final class Config
 
         $this->imagesActive = self::flag($v['IMAGES_ACTIVE']);
         $this->webpActive = self::flag($v['WEBP_ACTIVE']);
+
+        $this->jsActive = self::flag($v['JS_ACTIVE']);
+        $this->jsExcludeFiles = self::lines($v['JS_EXCLUDE_FILES']);
 
         $this->cacheTtlDays = max(1, (int)$v['CACHE_TTL_DAYS']);
 
