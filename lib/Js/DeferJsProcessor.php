@@ -39,6 +39,8 @@ use Vspace\PageSpeed\Processor\ProcessorInterface;
  * Не трогаются: data-skip-moving (соглашение Битрикса «не переносить»; на сайте это объявления данных и
  * загрузчики модуля), data-vps-skip, файлы из JS_EXCLUDE_FILES, не-JS (JSON-LD, шаблоны, type="module",
  * nomodule) и уже отложенные Ammina (type="deferjs").
+ *
+ * Файлы Битрикса (/bitrix/…/x.js) подключаются минифицированными (x.min.js), если копия есть — см. minified().
  */
 final class DeferJsProcessor implements ProcessorInterface
 {
@@ -87,6 +89,7 @@ final class DeferJsProcessor implements ProcessorInterface
     {
         $deferred = 0;
         $kept = 0;
+        $minified = 0;
         foreach ($doc->tags() as $t) {
             if ($t['name'] !== 'script' || $t['close']) {
                 continue;
@@ -95,7 +98,15 @@ final class DeferJsProcessor implements ProcessorInterface
             if ($tag === null || !in_array(strtolower(trim((string)$tag->get('type'))), self::JS_TYPES, true) || $tag->has('nomodule')) {
                 continue;
             }
+            $min = $this->minified($tag->get('src'), $ctx);
+            if ($min !== null) {
+                $tag->set('src', $min);
+                $minified++;
+            }
             if ($tag->has('data-skip-moving') || $tag->has('data-vps-skip') || $this->excluded($tag->get('src'), $ctx)) {
+                if ($min !== null) {
+                    $edits->replace($t['pos'], $t['end'], $tag->toHtml());
+                }
                 $kept++;
                 continue;
             }
@@ -109,6 +120,30 @@ final class DeferJsProcessor implements ProcessorInterface
         if ($kept > 0) {
             $ctx->stats['js_kept'] = $kept;
         }
+        if ($minified > 0) {
+            $ctx->stats['js_min'] = $minified;
+        }
+    }
+
+    /**
+     * Минифицированная копия файла Битрикса: /bitrix/…/x.js → x.min.js, по правилу ядра (Asset::getAssetPaths при
+     * «Подключать минифицированные версии CSS и JS» в главном модуле): копия есть, не пустая и не старше исходника.
+     * Ядро делает это само, только если настройка включена (на сайте выключена), а Ammina отдавала core.js
+     * минифицированным сама — 229 КБ вместо 511, и он на ~25% быстрее выполняется (на главной на телефоне — одна из
+     * длинных задач после первой отрисовки). Только /bitrix/: там .min.js поставляет и обновляет сам Битрикс.
+     * Параметр (?1754…) остаётся: Битрикс меняет его вместе с файлами.
+     */
+    private function minified(?string $src, Context $ctx): ?string
+    {
+        if ($src === null || !preg_match('~^(/bitrix/[^?#]+?)(?<!\.min)\.js([?#].*)?$~i', $src, $m) || str_contains($m[1], '..')) {
+            return null;
+        }
+        $min = $ctx->documentRoot . $m[1] . '.min.js';
+        $minTime = @filemtime($min);
+        if ($minTime === false || !@filesize($min) || $minTime < (int)@filemtime($ctx->documentRoot . $m[1] . '.js')) {
+            return null;
+        }
+        return $m[1] . '.min.js' . ($m[2] ?? '');
     }
 
     /** Файл из JS_EXCLUDE_FILES: локальный — по пути от корня, внешний — по адресу целиком. */

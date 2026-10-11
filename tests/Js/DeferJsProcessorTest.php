@@ -52,6 +52,50 @@ final class DeferJsProcessorTest extends TestCase
         $this->assertSame(4, $ctx->stats['js_kept']); // data-skip-moving, data-vps-skip, два исключённых файла
     }
 
+    public function testBitrixScriptsUseMinifiedCopies(): void
+    {
+        $root = str_replace('\\', '/', sys_get_temp_dir()) . '/vps-js-' . bin2hex(random_bytes(4));
+        mkdir($root . '/bitrix/js/main/core', 0777, true);
+        mkdir($root . '/local/js', 0777, true);
+        $files = [
+            '/bitrix/js/main/core/core.js' => [100, 'full'], '/bitrix/js/main/core/core.min.js' => [200, 'min'],
+            '/bitrix/js/old.js' => [300, 'full'], '/bitrix/js/old.min.js' => [100, 'min'],   // копия старше — не берётся
+            '/bitrix/js/empty.js' => [100, 'full'], '/bitrix/js/empty.min.js' => [200, ''],  // пустая — не берётся
+            '/local/js/app.js' => [100, 'full'], '/local/js/app.min.js' => [200, 'min'],     // не /bitrix/ — не трогается
+        ];
+        foreach ($files as $path => [$time, $body]) {
+            file_put_contents($root . $path, $body);
+            touch($root . $path, 1700000000 + $time);
+        }
+        $html = '<html><head></head><body>'
+            . '<script src="/bitrix/js/main/core/core.js?1754"></script>'
+            . '<script src="/bitrix/js/old.js"></script><script src="/bitrix/js/empty.js"></script>'
+            . '<script src="/local/js/app.js"></script><script src="/bitrix/js/main/core/core.min.js"></script>'
+            . '<script data-skip-moving="true" src="/bitrix/js/main/core/core.js"></script>'
+            . '</body></html>';
+        $config = new Config(['ACTIVE' => 'Y', 'CRITICAL_ACTIVE' => 'N', 'IMAGES_ACTIVE' => 'N', 'WEBP_ACTIVE' => 'N', 'JS_ACTIVE' => 'Y']);
+        $ctx = new Context($config, $root, '/', ['example.ru']);
+        try {
+            $out = Optimizer::create($config, $root)->optimize($html, $ctx);
+        } finally {
+            foreach (array_keys($files) as $path) {
+                unlink($root . $path);
+            }
+            foreach (['/bitrix/js/main/core', '/bitrix/js/main', '/bitrix/js', '/bitrix', '/local/js', '/local', ''] as $dir) {
+                rmdir($root . $dir);
+            }
+        }
+
+        $this->assertStringContainsString('<script src="/bitrix/js/main/core/core.min.js?1754" type="text/vps-defer"></script>', $out);
+        $this->assertStringContainsString('<script src="/bitrix/js/old.js" type="text/vps-defer"></script>', $out);
+        $this->assertStringContainsString('<script src="/bitrix/js/empty.js" type="text/vps-defer"></script>', $out);
+        $this->assertStringContainsString('<script src="/local/js/app.js" type="text/vps-defer"></script>', $out);
+        $this->assertStringContainsString('<script src="/bitrix/js/main/core/core.min.js" type="text/vps-defer"></script>', $out);
+        // неоткладываемый скрипт тоже получает копию
+        $this->assertStringContainsString('<script data-skip-moving="true" src="/bitrix/js/main/core/core.min.js"></script>', $out);
+        $this->assertSame(2, $ctx->stats['js_min']);
+    }
+
     public function testNothingToDefer(): void
     {
         $html = '<!DOCTYPE html><html><head><script data-skip-moving="true">var a=1;</script></head><body><script type="application/ld+json">{}</script></body></html>';
