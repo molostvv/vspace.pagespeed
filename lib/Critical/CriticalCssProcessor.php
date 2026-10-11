@@ -38,11 +38,16 @@ use Vspace\PageSpeed\Storage\FileStorage;
  * Critical рассчитан на первый экран. Если страница открывается не сверху — перезагрузка или «назад» с прокруткой
  * ниже первого экрана (браузер восстанавливает позицию), адрес с #якорем, — браузер сразу показал бы середину
  * страницы без стилей, и она прыгала бы, пока приходит полный CSS (CLS 1.9 против 1.0 без модуля). Поэтому в этих
- * случаях страница скрыта (visibility на <html>) до включения полного CSS, не дольше 3 с — как без модуля.
- * Прокрутку восстанавливает браузер (он подправляет её, пока страница грузится); позиция для решения «открыта
- * не сверху» запоминается в sessionStorage при уходе со страницы (pagehide); к #якорю — прокрутка заново, уже по
- * полной вёрстке. Где окажется страница, решают и её скрипты: слайдеры до запуска JS выстроены столбиком и
- * сворачиваются после — так и без модуля.
+ * случаях страница скрыта (visibility на <html>) до включения полного CSS и конца отложенного JS (слайдеры до
+ * запуска JS выстроены в ряд узкими слайдами и вдвое выше, потом сворачиваются), не дольше 3 с. Пока страница
+ * скрыта, загрузчик JS не ждёт первой отрисовки (её нет) и стартует сразу после onload (window.vpsHold).
+ * При показе прокрутка восстанавливается по элементу, который был в центре экрана: при уходе со страницы
+ * (pagehide) в sessionStorage запоминаются прокрутка, путь к этому элементу и его высота на экране, при показе
+ * он возвращается на ту же высоту. Браузер восстанавливал позицию по скрытой, ещё не свёрстанной странице и
+ * промахивался на сотни пикселей; по пикселям — тоже: картинки выше экрана после перезагрузки ещё не загружены.
+ * Элемент не нашёлся — прежняя прокрутка. После показа ещё 4 с (до первого действия пользователя) модуль держит
+ * этот элемент на месте, если страница меняет высоту: на главной скрипты после загрузки дописывают блоки выше
+ * экрана (AJAX), а браузер сам содержимое не удерживает. К #якорю — прокрутка заново, уже по полной вёрстке.
  */
 final class CriticalCssProcessor implements ProcessorInterface
 {
@@ -239,19 +244,33 @@ final class CriticalCssProcessor implements ProcessorInterface
      */
     private static function loaderScript(int $count): string
     {
-        return '(function(w,d,n){var c=0,done=0,hold=0,h=d.documentElement,L=location,k="vps_y:"+L.pathname+L.search;'
-            . 'function show(){if(!hold)return;hold=0;'
-            . 'if(L.hash.length>1){try{var t=d.getElementById(decodeURIComponent(L.hash.slice(1)));if(t)t.scrollIntoView()}catch(x){}}'
+        return '(function(w,d,n){var c=0,done=0,hold=0,a0=null,h=d.documentElement,L=location,k="vps_y:"+L.pathname+L.search;'
+            // держать элемент на высоте y, пока страница меняет размер, — 4 с или до действия пользователя
+            . 'function keep(e,y){if(!w.ResizeObserver)return;var on=1,o=new ResizeObserver(function(){if(on){var dy=e.getBoundingClientRect().top-y;if(dy>1||dy<-1)w.scrollBy(0,dy)}});'
+            . 'function end(){if(on){on=0;o.disconnect()}}o.observe(d.body);setTimeout(end,4000);'
+            . '"wheel touchstart keydown mousedown".split(" ").forEach(function(t){w.addEventListener(t,end,{passive:true,once:true})})}'
+            . 'function show(){if(!hold)return;hold=0;w.vpsHold=0;'
+            // a0 = [прокрутка, путь к элементу из центра экрана, его высота на экране]
+            . 'if(a0){try{var e=d.body,i,q=a0[1]?a0[1].split(","):[];for(i=0;e&&i<q.length;i++)e=e.children[q[i]];'
+            . 'if(e&&q.length){w.scrollTo(0,w.pageYOffset+e.getBoundingClientRect().top-a0[2]);keep(e,a0[2])}else w.scrollTo(0,a0[0])}catch(x){}}'
+            . 'else if(L.hash.length>1){try{var t=d.getElementById(decodeURIComponent(L.hash.slice(1)));if(t)t.scrollIntoView()}catch(x){}}'
             . 'h.style.visibility=""}'
-            . 'try{var s=w.sessionStorage,p=w.performance,v=p&&p.getEntriesByType?p.getEntriesByType("navigation")[0]:null,y=+s.getItem(k)||0;'
-            . 'w.addEventListener("pagehide",function(){try{s.setItem(k,Math.round(w.pageYOffset))}catch(x){}});'
-            . 'if(v&&(v.type==="reload"||v.type==="back_forward")&&y>w.innerHeight)hold=1;'
+            . 'try{var s=w.sessionStorage,p=w.performance,v=p&&p.getEntriesByType?p.getEntriesByType("navigation")[0]:null,'
+            . 'r=(s.getItem(k)||"").split("|"),y=+r[0]||0;'
+            . 'w.addEventListener("pagehide",function(){try{var e=d.elementFromPoint(w.innerWidth/2,w.innerHeight/2),'
+            . 't=e?Math.round(e.getBoundingClientRect().top):0,q=[],j,x;'
+            . 'while(e&&e!==d.body&&e.parentElement){for(j=0,x=e;(x=x.previousElementSibling);)j++;q.unshift(j);e=e.parentElement}'
+            . 's.setItem(k,Math.round(w.pageYOffset)+"|"+(e===d.body?q.join(","):"")+"|"+t)}catch(x){}});'
+            . 'if(v&&(v.type==="reload"||v.type==="back_forward")&&y>w.innerHeight){hold=1;a0=[y,r[1],+r[2]||0]}'
             . 'else if(L.hash.length>1)hold=1;'
-            . 'if(hold){h.style.visibility="hidden";setTimeout(show,3000)}'
+            . 'if(hold){w.vpsHold=1;h.style.visibility="hidden";setTimeout(show,3000);'
+            // показать, когда включён полный CSS, страница разобрана и (если есть) отложенный JS выполнен
+            . 'w.vpsHoldCheck=function(){if(done&&d.readyState!=="loading"&&(!w.vpsJs||w.vpsJsDone))show()};'
+            . 'd.addEventListener("DOMContentLoaded",w.vpsHoldCheck)}'
             . '}catch(x){}'
             . 'function all(){if(done)return;done=1;'
             . 'var a=d.querySelectorAll("link[data-vps-async]");'
-            . 'for(var i=0;i<a.length;i++)a[i].media=a[i].getAttribute("data-vps-media")||"all";show()}'
+            . 'for(var i=0;i<a.length;i++)a[i].media=a[i].getAttribute("data-vps-media")||"all";if(w.vpsHoldCheck)w.vpsHoldCheck()}'
             . 'w.vpsCss=function(l){l.onload=l.onerror=null;if(++c>=n)all()};'
             . 'w.addEventListener("load",all)})(window,document,' . $count . ');';
     }

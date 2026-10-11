@@ -23,8 +23,9 @@ use Vspace\PageSpeed\Processor\ProcessorInterface;
  * страница с critical CSS грузится так быстро, что onload наступает раньше первой отрисовки, и скрипты, начатые
  * сразу, отодвигали FCP/LCP на время своего выполнения (PSI: LCP 5–7 с вместо 2 с в части прогонов). Ожидания
  * кадра (requestAnimationFrame) мало: в начале загрузки браузер может не рисовать кадры дольше полсекунды.
- * Поэтому — событие first-contentful-paint (Paint Timing); без него — кадр; в скрытой вкладке — сразу;
- * страховка — 3 с. Подряд идущие внешние скрипты вставляются
+ * Поэтому — событие first-contentful-paint (Paint Timing); без него — кадр; в скрытой вкладке и пока critical
+ * CSS держит страницу скрытой (window.vpsHold: открыта не сверху) — сразу; страховка — 3 с. По окончании —
+ * window.vpsJsDone и сигнал CSS-загрузчику показать страницу. Подряд идущие внешние скрипты вставляются
  * разом с async=false — качаются параллельно, выполняются по порядку (Ammina качала по одному); встроенный
  * скрипт ждёт предыдущие внешние. Внешние с async — в конце, без порядка.
  *
@@ -44,7 +45,7 @@ final class DeferJsProcessor implements ProcessorInterface
     public const TYPE = 'text/vps-defer';
     private const JS_TYPES = ['', 'text/javascript', 'application/javascript', 'application/x-javascript', 'text/ecmascript', 'application/ecmascript', 'text/jscript'];
 
-    private const LOADER = '(function(w,d){var T="' . self::TYPE . '";'
+    private const LOADER = '(function(w,d){var T="' . self::TYPE . '";w.vpsJs=1;'
         . 'function ev(t){try{return new Event(t)}catch(x){var e=d.createEvent("Event");e.initEvent(t,false,false);return e}}'
         . 'function run(){var all=d.querySelectorAll(\'script[type="\'+T+\'"]\'),q=[],late=[],dcl=[],ld=[],onl=w.onload,n=0,i;'
         . 'for(i=0;i<all.length;i++)(all[i].hasAttribute("src")&&all[i].hasAttribute("async")?late:q).push(all[i]);'
@@ -62,12 +63,12 @@ final class DeferJsProcessor implements ProcessorInterface
         . 'if(last){last.addEventListener("load",next);last.addEventListener("error",next)}else done()}'
         . 'function done(){delete d.addEventListener;delete w.addEventListener;delete d.write;delete d.writeln;'
         . 'fire(dcl,"DOMContentLoaded");fire(ld,"load");if(w.onload!==onl&&typeof w.onload==="function")call(w.onload,w,ev("load"));'
-        . 'for(i=0;i<late.length;i++)put(late[i]);w.vpsJsDone=1}'
+        . 'for(i=0;i<late.length;i++)put(late[i]);w.vpsJsDone=1;if(w.vpsHoldCheck)w.vpsHoldCheck()}'
         . 'next()}'
         // после onload — дождаться первой отрисовки (FCP), потом выполнять
         . 'function go(){if(!go.s){go.s=1;run()}}'
         . 'function start(){var P=w.PerformanceObserver,p=w.performance,F="first-contentful-paint",o;'
-        . 'if(d.hidden||(p&&p.getEntriesByName&&p.getEntriesByName(F).length)){setTimeout(go,1);return}'
+        . 'if(d.hidden||w.vpsHold||(p&&p.getEntriesByName&&p.getEntriesByName(F).length)){setTimeout(go,1);return}'
         . 'setTimeout(go,3000);'
         . 'if(P&&(P.supportedEntryTypes||[]).indexOf("paint")>=0){o=new P(function(l){if(l.getEntriesByName(F).length){o.disconnect();setTimeout(go,1)}});o.observe({type:"paint",buffered:true})}'
         . 'else if(w.requestAnimationFrame)requestAnimationFrame(function(){setTimeout(go,1)});else setTimeout(go,1)}'
