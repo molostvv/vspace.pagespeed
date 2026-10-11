@@ -37,12 +37,11 @@ use Vspace\PageSpeed\Storage\FileStorage;
  */
 final class CriticalCssProcessor implements ProcessorInterface
 {
-    private const PUBLIC_DIR = 'public';
-
+    /** @param FileStorage $publicStorage каталог, который отдаётся браузеру (Optimizer::PUBLIC_DIR) */
     public function __construct(
         private readonly Config $config,
         private readonly CriticalCssBuilder $builder,
-        private readonly FileStorage $storage,
+        private readonly FileStorage $publicStorage,
     ) {
     }
 
@@ -167,12 +166,12 @@ final class CriticalCssProcessor implements ProcessorInterface
         // относительные url() во встроенном стиле считаются от адреса страницы — в файле кеша они бы сломались
         $css = UrlRebaser::rebase($css, $ctx->pageDir());
         $hash = md5($css);
-        $relative = self::PUBLIC_DIR . '/' . substr($hash, 0, 2) . '/' . $hash . '.css';
-        if (!$this->storage->exists($relative) && !$this->storage->write($relative, $css)) {
+        $relative = substr($hash, 0, 2) . '/' . $hash . '.css';
+        if (!$this->publicStorage->exists($relative) && !$this->publicStorage->write($relative, $css)) {
             return null;
         }
-        $this->storage->touch($relative);
-        $url = $this->storage->url($relative);
+        $this->publicStorage->touch($relative);
+        $url = $this->publicStorage->url($relative);
         return new StylesheetRef(StylesheetRef::STYLE, $t['pos'], $element['end'], $url, $url, $media, '');
     }
 

@@ -99,7 +99,7 @@ final class CriticalCssProcessorTest extends TestCase
 
         $this->assertStringNotContainsString('<style>', $out);
         $this->assertStringNotContainsString('rel="preload"', $out);
-        $this->assertTrue((bool)preg_match('~<link rel="stylesheet" href="(/bitrix/cache/vspace\.pagespeed/public/[0-9a-f]{2}/[0-9a-f]{32}\.css)" media="print"~', $out, $m));
+        $this->assertTrue((bool)preg_match('~<link rel="stylesheet" href="(/bitrix/cache/css/vspace\.pagespeed/[0-9a-f]{2}/[0-9a-f]{32}\.css)" media="print"~', $out, $m));
         $saved = file_get_contents($this->root . $m[1]);
         $this->assertStringContainsString('url(/services/seo/img/a.png)', $saved); // url от адреса страницы переписан
         $this->assertStringContainsString('.hero{color:#fff}', $out);

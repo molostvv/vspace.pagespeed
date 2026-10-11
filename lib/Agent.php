@@ -80,7 +80,9 @@ final class Agent
     {
         try {
             $root = self::root();
-            Optimizer::storage($root)->cleanup(Options::config()->cacheTtlDays * 86400);
+            $ttl = Options::config()->cacheTtlDays * 86400;
+            Optimizer::storage($root)->cleanup($ttl);
+            Optimizer::publicStorage($root)->cleanup($ttl);
             (new WebpStore($root))->cleanup();
         } catch (\Throwable $e) {
             self::log($e);

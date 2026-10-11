@@ -3,7 +3,8 @@
 namespace Vspace\PageSpeed\Storage;
 
 /**
- * Файловый кеш модуля: /bitrix/cache/vspace.pagespeed/ (очищается вместе с кешем сайта и пересобирается сам).
+ * Файловый кеш модуля: /bitrix/cache/vspace.pagespeed/ и (файлы для браузера) /bitrix/cache/css/vspace.pagespeed/ —
+ * очищается вместе с кешем сайта и пересобирается сам.
  *
  *  - запись атомарна (временный файл + rename): параллельный запрос не прочитает недописанный файл;
  *  - индексы CSS хранятся как PHP (var_export) — повторное чтение идёт из OPcache;

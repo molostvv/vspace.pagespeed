@@ -95,6 +95,7 @@ $tabControl = new CAdminTabControl('tabControl', [
 $vpsRequest = Context::getCurrent()->getRequest();
 $vpsRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/');
 $vpsStorage = Optimizer::storage($vpsRoot);
+$vpsPublicStorage = Optimizer::publicStorage($vpsRoot);
 $vpsWebp = new WebpStore($vpsRoot);
 $vpsErrors = [];
 $vpsPosted = null; // введённые значения — чтобы при ошибке показать их, а не сохранённые
@@ -103,6 +104,7 @@ $vpsRedirect = $APPLICATION->GetCurPage() . '?mid=' . urlencode($module_id) . '&
 if ($vpsRequest->isPost() && check_bitrix_sessid()) {
     if ((string)$vpsRequest->getPost('vps_clear_cache') !== '') {
         $vpsStorage->clear();
+        $vpsPublicStorage->clear();
         LocalRedirect($vpsRedirect . '&vps_cleared=Y&' . $tabControl->ActiveTabParam());
     }
     if ((string)$vpsRequest->getPost('vps_clear_webp') !== '') {
@@ -262,7 +264,7 @@ $vpsValue = static function (string $code) use ($module_id, $vpsPosted): string 
             <?php
             $vpsIndex = $vpsStorage->stats('index');
             $vpsCritical = $vpsStorage->stats('critical');
-            $vpsPublic = $vpsStorage->stats('public');
+            $vpsPublic = $vpsPublicStorage->stats();
             ?>
             <tr class="heading"><td colspan="2"><?= GetMessage('VPS_OPT_HEADING_STATS') ?></td></tr>
             <tr>

@@ -19,7 +19,12 @@ use Vspace\PageSpeed\Processor\ProcessorInterface;
  * грузится первый экран.
  *
  * Как: у скриптов тип меняется на text/vps-defer — браузер их не скачивает и не выполняет; загрузчик перед
- * </body> после onload выполняет их по порядку на прежних местах. Подряд идущие внешние скрипты вставляются
+ * </body> после onload и первой отрисовки (FCP) выполняет их по порядку на прежних местах. FCP ждём явно:
+ * страница с critical CSS грузится так быстро, что onload наступает раньше первой отрисовки, и скрипты, начатые
+ * сразу, отодвигали FCP/LCP на время своего выполнения (PSI: LCP 5–7 с вместо 2 с в части прогонов). Ожидания
+ * кадра (requestAnimationFrame) мало: в начале загрузки браузер может не рисовать кадры дольше полсекунды.
+ * Поэтому — событие first-contentful-paint (Paint Timing); без него — кадр; в скрытой вкладке — сразу;
+ * страховка — 3 с. Подряд идущие внешние скрипты вставляются
  * разом с async=false — качаются параллельно, выполняются по порядку (Ammina качала по одному); встроенный
  * скрипт ждёт предыдущие внешние. Внешние с async — в конце, без порядка.
  *
@@ -59,7 +64,14 @@ final class DeferJsProcessor implements ProcessorInterface
         . 'fire(dcl,"DOMContentLoaded");fire(ld,"load");if(w.onload!==onl&&typeof w.onload==="function")call(w.onload,w,ev("load"));'
         . 'for(i=0;i<late.length;i++)put(late[i]);w.vpsJsDone=1}'
         . 'next()}'
-        . 'if(d.readyState==="complete")setTimeout(run,1);else w.addEventListener("load",function(){setTimeout(run,1)})})(window,document);';
+        // после onload — дождаться первой отрисовки (FCP), потом выполнять
+        . 'function go(){if(!go.s){go.s=1;run()}}'
+        . 'function start(){var P=w.PerformanceObserver,p=w.performance,F="first-contentful-paint",o;'
+        . 'if(d.hidden||(p&&p.getEntriesByName&&p.getEntriesByName(F).length)){setTimeout(go,1);return}'
+        . 'setTimeout(go,3000);'
+        . 'if(P&&(P.supportedEntryTypes||[]).indexOf("paint")>=0){o=new P(function(l){if(l.getEntriesByName(F).length){o.disconnect();setTimeout(go,1)}});o.observe({type:"paint",buffered:true})}'
+        . 'else if(w.requestAnimationFrame)requestAnimationFrame(function(){setTimeout(go,1)});else setTimeout(go,1)}'
+        . 'if(d.readyState==="complete")start();else w.addEventListener("load",start)})(window,document);';
 
     public function __construct(private readonly Config $config)
     {

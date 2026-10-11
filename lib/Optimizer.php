@@ -23,6 +23,11 @@ use Vspace\PageSpeed\Storage\FileStorage;
 final class Optimizer
 {
     public const CACHE_DIR = '/bitrix/cache/vspace.pagespeed';
+    /**
+     * Файлы, которые отдаются браузеру (вынесенные встроенные стили). Не в CACHE_DIR: nginx BitrixVM закрывает
+     * /bitrix/cache целиком, кроме /bitrix/cache/css/*.css и /bitrix/cache/js/*.js (объединённые CSS/JS ядра).
+     */
+    public const PUBLIC_DIR = '/bitrix/cache/css/vspace.pagespeed';
 
     /** @param list<ProcessorInterface> $processors */
     public function __construct(private readonly array $processors)
@@ -49,7 +54,7 @@ final class Optimizer
                 $config->criticalHash(),
                 $config->criticalMaxSize,
             );
-            $processors[] = new CriticalCssProcessor($config, $builder, $storage);
+            $processors[] = new CriticalCssProcessor($config, $builder, self::publicStorage($documentRoot));
         }
         if ($config->imagesActive || $config->webpActive) {
             $processors[] = new ImagesProcessor($config, $config->webpActive ? new WebpRewriter(new WebpStore($documentRoot)) : null);
@@ -63,6 +68,11 @@ final class Optimizer
     public static function storage(string $documentRoot): FileStorage
     {
         return new FileStorage($documentRoot . self::CACHE_DIR, self::CACHE_DIR);
+    }
+
+    public static function publicStorage(string $documentRoot): FileStorage
+    {
+        return new FileStorage($documentRoot . self::PUBLIC_DIR, self::PUBLIC_DIR);
     }
 
     public function optimize(string $html, Context $ctx): string
