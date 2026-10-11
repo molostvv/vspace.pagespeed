@@ -31,15 +31,12 @@ final class FoldDetector
     ) {
     }
 
-    /** @return array{start:int, boundary:int, reason:string} */
+    /**
+     * @return array{start:int, boundary:int, reason:string, content:?int} content — начало контента (элемент
+     *         FOLD_START_CLASSES, без него — первый блок), null — если не найдено
+     */
     public function detect(Document $doc): array
     {
-        $html = $doc->html;
-        $marker = strpos($html, self::MARKER, $doc->bodyOpenEnd);
-        if ($marker !== false && $marker < $doc->bodyEnd) {
-            return ['start' => $doc->bodyStart, 'boundary' => $marker, 'reason' => 'marker'];
-        }
-
         $tags = $doc->tags();
         $count = count($tags);
         $first = $doc->firstTagIndexAt($doc->bodyOpenEnd);
@@ -54,6 +51,11 @@ final class FoldDetector
                     break;
                 }
             }
+        }
+
+        $marker = strpos($doc->html, self::MARKER, $doc->bodyOpenEnd);
+        if ($marker !== false && $marker < $doc->bodyEnd) {
+            return ['start' => $doc->bodyStart, 'boundary' => $marker, 'reason' => 'marker', 'content' => $contentStart];
         }
 
         $boundary = null;
@@ -79,12 +81,13 @@ final class FoldDetector
         }
 
         $boundary ??= $doc->bodyEnd;
+        $content = $contentStart;
         $contentStart ??= $doc->bodyOpenEnd;
         if ($this->maxBytes > 0 && $boundary > $contentStart + $this->maxBytes) {
             $boundary = $contentStart + $this->maxBytes;
             $reason = 'limit';
         }
-        return ['start' => $doc->bodyStart, 'boundary' => $boundary, 'reason' => $reason];
+        return ['start' => $doc->bodyStart, 'boundary' => $boundary, 'reason' => $reason, 'content' => $content];
     }
 
     /** @param list<string> $classes */

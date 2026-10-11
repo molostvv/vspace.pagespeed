@@ -18,9 +18,12 @@ final class Config
         // те же домены, что исключены у ammina.optimizer
         'EXCLUDE_HOSTS' => "crm.\ndouble-d.\ndesign-demis.ru",
         'DEBUG_PARAMS' => 'N',
-        'AMMINA_DISABLE_CSS' => 'Y',
+        'AMMINA_DISABLE' => 'Y',
 
         'CRITICAL_ACTIVE' => 'Y',
+        // redesign (шаблон demis_group): шрифт Manrope (TTF) приходит после ранней отрисовки, и его подмена
+        // сдвигает hero — CLS 0.13 против 0.01 без critical; картинки там работают
+        'CRITICAL_EXCLUDE_URLS' => "*-redesign/*\n/redesign/",
         'FOLD_START_CLASSES' => 'page__content',
         // блоки контента: panel* — шаблон demis_edges, section — demis_group (redesign), page__shares__row и
         // list__news__item — ряд плиток и карточка списков статей (/articles/ и разделы): там нет панелей
@@ -44,6 +47,9 @@ final class Config
         'ASYNC_MODE' => 'preload',
         'CRITICAL_MAX_SIZE' => 204800,
 
+        // картинки: без lazy в первом экране, preload фона hero, lazy ниже (img/iframe — нативно, фоны — скриптом)
+        'IMAGES_ACTIVE' => 'Y',
+
         'CACHE_TTL_DAYS' => 30,
 
         // ключ Google PageSpeed Insights API для tools/psi.php (на работу модуля не влияет)
@@ -56,9 +62,11 @@ final class Config
     /** @var list<string> */
     public readonly array $excludeHosts;
     public readonly bool $debugParams;
-    public readonly bool $amminaDisableCss;
+    public readonly bool $amminaDisable;
 
     public readonly bool $criticalActive;
+    /** @var list<string> */
+    public readonly array $criticalExcludeUrls;
     /** @var list<string> */
     public readonly array $foldStartClasses;
     /** @var list<string> */
@@ -83,6 +91,8 @@ final class Config
     public readonly string $asyncMode;
     public readonly int $criticalMaxSize;
 
+    public readonly bool $imagesActive;
+
     public readonly int $cacheTtlDays;
 
     public readonly string $psiApiKey;
@@ -96,9 +106,10 @@ final class Config
         $this->excludeUrls = self::lines($v['EXCLUDE_URLS']);
         $this->excludeHosts = self::lines($v['EXCLUDE_HOSTS']);
         $this->debugParams = self::flag($v['DEBUG_PARAMS']);
-        $this->amminaDisableCss = self::flag($v['AMMINA_DISABLE_CSS']);
+        $this->amminaDisable = self::flag($v['AMMINA_DISABLE']);
 
         $this->criticalActive = self::flag($v['CRITICAL_ACTIVE']);
+        $this->criticalExcludeUrls = self::lines($v['CRITICAL_EXCLUDE_URLS']);
         $this->foldStartClasses = self::tokens($v['FOLD_START_CLASSES']);
         $this->foldBlockClasses = self::tokens($v['FOLD_BLOCK_CLASSES']);
         $this->foldBlocks = max(0, (int)$v['FOLD_BLOCKS']);
@@ -115,9 +126,17 @@ final class Config
         $this->asyncMode = $v['ASYNC_MODE'] === 'print' ? 'print' : 'preload';
         $this->criticalMaxSize = max(0, (int)$v['CRITICAL_MAX_SIZE']);
 
+        $this->imagesActive = self::flag($v['IMAGES_ACTIVE']);
+
         $this->cacheTtlDays = max(1, (int)$v['CACHE_TTL_DAYS']);
 
         $this->psiApiKey = trim((string)$v['PSI_API_KEY']);
+    }
+
+    /** Critical CSS включён и применяется на странице $path (не в CRITICAL_EXCLUDE_URLS). */
+    public function criticalFor(string $path): bool
+    {
+        return $this->criticalActive && !PathMatcher::matchPath($path, $this->criticalExcludeUrls);
     }
 
     /**

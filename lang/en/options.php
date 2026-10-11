@@ -6,6 +6,8 @@ $MESS['VPS_OPT_TAB_GENERAL'] = 'General';
 $MESS['VPS_OPT_TAB_GENERAL_TITLE'] = 'Activation and exclusions';
 $MESS['VPS_OPT_TAB_CRITICAL'] = 'Critical CSS';
 $MESS['VPS_OPT_TAB_CRITICAL_TITLE'] = 'Above-the-fold styles';
+$MESS['VPS_OPT_TAB_IMAGES'] = 'Images';
+$MESS['VPS_OPT_TAB_IMAGES_TITLE'] = 'Image loading';
 $MESS['VPS_OPT_TAB_CACHE'] = 'Cache and check';
 $MESS['VPS_OPT_TAB_CACHE_TITLE'] = 'Module cache and page check';
 
@@ -15,12 +17,14 @@ $MESS['VPS_OPT_EXCLUDE_URLS'] = 'Skip pages';
 $MESS['VPS_OPT_EXCLUDE_URLS_HINT'] = 'One rule per line. <code>/personal/</code> — prefix; <code>/services/*-redesign/</code> — mask (* = any characters); <code>~^/test/\d+/$</code> — regular expression.';
 $MESS['VPS_OPT_EXCLUDE_HOSTS'] = 'Skip domains';
 $MESS['VPS_OPT_EXCLUDE_HOSTS_HINT'] = 'One per line. <code>design-demis.ru</code> — domain and its www; <code>crm.</code> — domains starting with crm.; <code>*.demis.ru</code> — mask.';
-$MESS['VPS_OPT_AMMINA_DISABLE_CSS'] = 'Disable Ammina CSS optimization';
-$MESS['VPS_OPT_AMMINA_DISABLE_CSS_HINT'] = 'On pages processed by this module the CSS block of ammina.optimizer (merging and its critical CSS) is turned off; the rest of Ammina keeps working. Needed while Ammina is installed.';
+$MESS['VPS_OPT_AMMINA_DISABLE'] = 'Turn off in Ammina what this module does';
+$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'On pages processed by this module ammina.optimizer gets its CSS block (merging and its critical CSS — when critical CSS is on) and its lazyload (when images are on) turned off. WebP, deferred JS and the rest of Ammina keep working. Needed while Ammina is installed.';
 $MESS['VPS_OPT_DEBUG_PARAMS'] = 'Debug parameters for everyone';
 $MESS['VPS_OPT_DEBUG_PARAMS_HINT'] = '<code>?vps=off</code>, <code>?vps_critical=only</code>, <code>?vps_debug=1</code> always work for administrators; with this option — for any visitor. Do not enable on production.';
 
 $MESS['VPS_OPT_CRITICAL_ACTIVE'] = 'Critical CSS enabled';
+$MESS['VPS_OPT_CRITICAL_EXCLUDE_URLS'] = 'Do not apply critical CSS on pages';
+$MESS['VPS_OPT_CRITICAL_EXCLUDE_URLS_HINT'] = 'Same rules as «Do not process pages», but the rest (images) keeps working there. Default: redesign pages — the Manrope web font (TTF) arrives after the early first paint and its swap shifts the first screen (CLS 0.13 instead of 0.01). Can be removed once the fonts are WOFF2.';
 $MESS['VPS_OPT_HEADING_FOLD'] = 'Above the fold';
 $MESS['VPS_OPT_FOLD_START_CLASSES'] = 'Content start (classes)';
 $MESS['VPS_OPT_FOLD_START_CLASSES_HINT'] = 'Blocks are counted after this element. The header before it is always above the fold. If missing, blocks are counted from the start of body.';
@@ -55,6 +59,9 @@ $MESS['VPS_OPT_FONT_DISPLAY_SWAP'] = 'Add font-display: swap';
 $MESS['VPS_OPT_FONT_DISPLAY_SWAP_HINT'] = 'Text is shown immediately with a system font while the web font loads.';
 $MESS['VPS_OPT_CRITICAL_MAX_SIZE'] = 'Maximum critical CSS size, bytes';
 $MESS['VPS_OPT_CRITICAL_MAX_SIZE_HINT'] = 'If larger, the page is served unchanged (a sign of bad fold settings). 0 — unlimited.';
+
+$MESS['VPS_OPT_IMAGES_ACTIVE'] = 'Lazy image loading';
+$MESS['VPS_OPT_IMAGES_ACTIVE_HINT'] = 'The fold is the same as for critical CSS. Above the fold images lose <code>loading="lazy"</code> and the hero background (the first <code>style</code> background after the content start) is preloaded with high priority. Below the fold and inside hidden menus <code>&lt;img&gt;</code> and <code>&lt;iframe&gt;</code> get <code>loading="lazy"</code>, <code>style</code> backgrounds are loaded by a script when they approach the viewport. Elements with <code>data-lazy="N"</code> or <code>data-vps-skip</code> are left alone.';
 
 $MESS['VPS_OPT_CACHE_TTL_DAYS'] = 'Delete unused cache after, days';
 $MESS['VPS_OPT_HEADING_PSI'] = 'PageSpeed Insights measurements';

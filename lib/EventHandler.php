@@ -8,7 +8,8 @@ use Vspace\PageSpeed\Integration\AmminaBridge;
 /**
  * Обработчики событий main (регистрируются в install/index.php):
  *  - OnBeforeEndBufferContent — до обработчиков вывода: на страницах, которые обработает модуль, выключает
- *    CSS-оптимизацию Ammina (AMMINA_DISABLE_CSS), чтобы не было двух critical;
+ *    у Ammina то же самое (AMMINA_DISABLE): CSS-оптимизацию — чтобы не было двух critical, lazyload — чтобы
+ *    её заглушки не держали фон hero до window.onload;
  *  - OnEndBufferContent (сортировка 1100 — после Ammina с её 1000) — оптимизация готового HTML.
  * Любая ошибка модуля только пишется в лог: страница отдаётся всегда.
  */
@@ -18,8 +19,9 @@ final class EventHandler
     {
         try {
             $config = Options::config();
-            if ($config->amminaDisableCss && $config->criticalActive && RequestGuard::skipReason($config) === null) {
-                AmminaBridge::disableCss();
+            $categories = array_keys(array_filter(['css' => $config->criticalFor(RequestGuard::path()), 'lazy' => $config->imagesActive]));
+            if ($config->amminaDisable && $categories && RequestGuard::skipReason($config) === null) {
+                AmminaBridge::disable($categories);
             }
         } catch (\Throwable $e) {
             self::log($e);

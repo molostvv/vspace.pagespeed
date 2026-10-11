@@ -39,11 +39,12 @@ $vpsTabs = [
         'ACTIVE' => 'checkbox',
         'EXCLUDE_URLS' => 'textarea',
         'EXCLUDE_HOSTS' => 'textarea',
-        'AMMINA_DISABLE_CSS' => 'checkbox',
+        'AMMINA_DISABLE' => 'checkbox',
         'DEBUG_PARAMS' => 'checkbox',
     ],
     'critical' => [
         'CRITICAL_ACTIVE' => 'checkbox',
+        'CRITICAL_EXCLUDE_URLS' => 'textarea',
         '#FOLD' => null,
         'FOLD_START_CLASSES' => 'text',
         'FOLD_BLOCK_CLASSES' => 'textarea',
@@ -63,6 +64,9 @@ $vpsTabs = [
         'FONT_DISPLAY_SWAP' => 'checkbox',
         'CRITICAL_MAX_SIZE' => [0, 10000000],
     ],
+    'images' => [
+        'IMAGES_ACTIVE' => 'checkbox',
+    ],
     'cache' => [
         'CACHE_TTL_DAYS' => [1, 365],
         '#PSI' => null,
@@ -73,6 +77,7 @@ $vpsTabs = [
 $tabControl = new CAdminTabControl('tabControl', [
     ['DIV' => 'vps_general', 'TAB' => GetMessage('VPS_OPT_TAB_GENERAL'), 'TITLE' => GetMessage('VPS_OPT_TAB_GENERAL_TITLE')],
     ['DIV' => 'vps_critical', 'TAB' => GetMessage('VPS_OPT_TAB_CRITICAL'), 'TITLE' => GetMessage('VPS_OPT_TAB_CRITICAL_TITLE')],
+    ['DIV' => 'vps_images', 'TAB' => GetMessage('VPS_OPT_TAB_IMAGES'), 'TITLE' => GetMessage('VPS_OPT_TAB_IMAGES_TITLE')],
     ['DIV' => 'vps_cache', 'TAB' => GetMessage('VPS_OPT_TAB_CACHE'), 'TITLE' => GetMessage('VPS_OPT_TAB_CACHE_TITLE')],
 ]);
 

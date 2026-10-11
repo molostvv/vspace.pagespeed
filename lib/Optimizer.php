@@ -8,6 +8,7 @@ use Vspace\PageSpeed\Css\CriticalExtractor;
 use Vspace\PageSpeed\Css\StylesheetIndexer;
 use Vspace\PageSpeed\Html\Document;
 use Vspace\PageSpeed\Html\Edits;
+use Vspace\PageSpeed\Images\LazyImagesProcessor;
 use Vspace\PageSpeed\Processor\ProcessorInterface;
 use Vspace\PageSpeed\Storage\FileStorage;
 
@@ -25,7 +26,7 @@ final class Optimizer
     {
     }
 
-    /** Конвейер по настройкам: сейчас — critical CSS (lazyload и др. добавляются сюда же). */
+    /** Конвейер по настройкам: critical CSS, картинки (WebP и отложенный JS добавятся сюда же). */
     public static function create(Config $config, string $documentRoot): self
     {
         $processors = [];
@@ -40,6 +41,9 @@ final class Optimizer
                 $config->criticalMaxSize,
             );
             $processors[] = new CriticalCssProcessor($config, $builder, $storage);
+        }
+        if ($config->imagesActive) {
+            $processors[] = new LazyImagesProcessor($config);
         }
         return new self($processors);
     }

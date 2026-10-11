@@ -53,6 +53,10 @@ final class CriticalCssProcessor implements ProcessorInterface
 
     public function process(Document $doc, Edits $edits, Context $ctx): void
     {
+        if (!$this->config->criticalFor($ctx->pagePath)) {
+            $ctx->stats['critical'] = 'excluded';
+            return;
+        }
         $refs = $this->collect($doc, $ctx);
         if (!$refs) {
             $ctx->stats['critical'] = 'no-css';

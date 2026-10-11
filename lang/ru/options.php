@@ -6,6 +6,8 @@ $MESS['VPS_OPT_TAB_GENERAL'] = 'Общие';
 $MESS['VPS_OPT_TAB_GENERAL_TITLE'] = 'Включение и исключения';
 $MESS['VPS_OPT_TAB_CRITICAL'] = 'Critical CSS';
 $MESS['VPS_OPT_TAB_CRITICAL_TITLE'] = 'Стили первого экрана';
+$MESS['VPS_OPT_TAB_IMAGES'] = 'Картинки';
+$MESS['VPS_OPT_TAB_IMAGES_TITLE'] = 'Загрузка картинок';
 $MESS['VPS_OPT_TAB_CACHE'] = 'Кеш и проверка';
 $MESS['VPS_OPT_TAB_CACHE_TITLE'] = 'Кеш модуля и проверка страниц';
 
@@ -15,12 +17,14 @@ $MESS['VPS_OPT_EXCLUDE_URLS'] = 'Не обрабатывать страницы'
 $MESS['VPS_OPT_EXCLUDE_URLS_HINT'] = 'По одному правилу в строке. <code>/personal/</code> — все адреса, начинающиеся так; <code>/services/*-redesign/</code> — маска (* — любые символы); <code>~^/test/\d+/$</code> — регулярное выражение.';
 $MESS['VPS_OPT_EXCLUDE_HOSTS'] = 'Не обрабатывать домены';
 $MESS['VPS_OPT_EXCLUDE_HOSTS_HINT'] = 'По одному в строке. <code>design-demis.ru</code> — домен и его www; <code>crm.</code> — домены, начинающиеся с crm.; <code>*.demis.ru</code> — маска.';
-$MESS['VPS_OPT_AMMINA_DISABLE_CSS'] = 'Выключать CSS-оптимизацию Ammina';
-$MESS['VPS_OPT_AMMINA_DISABLE_CSS_HINT'] = 'На страницах, которые обрабатывает модуль, у ammina.optimizer отключается блок CSS (объединение и её critical), остальное у неё продолжает работать. Нужно, пока Ammina установлена.';
+$MESS['VPS_OPT_AMMINA_DISABLE'] = 'Выключать у Ammina то, что делает модуль';
+$MESS['VPS_OPT_AMMINA_DISABLE_HINT'] = 'На страницах, которые обрабатывает модуль, у ammina.optimizer выключаются блок CSS (объединение и её critical — если включён critical CSS) и lazyload (если включены картинки). WebP, отложенный JS и остальное у неё продолжают работать. Нужно, пока Ammina установлена.';
 $MESS['VPS_OPT_DEBUG_PARAMS'] = 'Отладочные параметры для всех';
 $MESS['VPS_OPT_DEBUG_PARAMS_HINT'] = 'Параметры <code>?vps=off</code>, <code>?vps_critical=only</code>, <code>?vps_debug=1</code> работают у администраторов всегда, с этой галкой — у любого посетителя. На рабочем сайте не включать.';
 
 $MESS['VPS_OPT_CRITICAL_ACTIVE'] = 'Critical CSS включён';
+$MESS['VPS_OPT_CRITICAL_EXCLUDE_URLS'] = 'Не применять critical CSS на страницах';
+$MESS['VPS_OPT_CRITICAL_EXCLUDE_URLS_HINT'] = 'Правила как у «Не обрабатывать страницы», но остальное (картинки) на этих страницах работает. По умолчанию — redesign: веб-шрифт Manrope (TTF) приходит позже ранней отрисовки, и его подмена сдвигает первый экран (CLS 0.13 вместо 0.01). Можно убрать после перевода шрифтов в WOFF2.';
 $MESS['VPS_OPT_HEADING_FOLD'] = 'Первый экран';
 $MESS['VPS_OPT_FOLD_START_CLASSES'] = 'Начало контента (классы)';
 $MESS['VPS_OPT_FOLD_START_CLASSES_HINT'] = 'Элемент, после которого считаются блоки. Шапка до него входит в первый экран всегда. Если на странице его нет, блоки считаются с начала body.';
@@ -55,6 +59,9 @@ $MESS['VPS_OPT_FONT_DISPLAY_SWAP'] = 'Добавлять font-display: swap';
 $MESS['VPS_OPT_FONT_DISPLAY_SWAP_HINT'] = 'Текст виден сразу системным шрифтом, пока грузится веб-шрифт.';
 $MESS['VPS_OPT_CRITICAL_MAX_SIZE'] = 'Максимальный размер critical, байт';
 $MESS['VPS_OPT_CRITICAL_MAX_SIZE_HINT'] = 'Если больше — страница отдаётся без изменений (признак неудачных настроек первого экрана). 0 — без ограничения.';
+
+$MESS['VPS_OPT_IMAGES_ACTIVE'] = 'Отложенная загрузка картинок';
+$MESS['VPS_OPT_IMAGES_ACTIVE_HINT'] = 'Граница первого экрана — та же, что у critical CSS. В первом экране у картинок снимается <code>loading="lazy"</code>, фон hero (первая фоновая картинка в <code>style</code> после начала контента) загружается сразу с высоким приоритетом. Ниже первого экрана и в скрытых меню: <code>&lt;img&gt;</code> и <code>&lt;iframe&gt;</code> получают <code>loading="lazy"</code>, фоны из <code>style</code> подгружаются скриптом при подходе к экрану. Не трогаются элементы с <code>data-lazy="N"</code> или <code>data-vps-skip</code>.';
 
 $MESS['VPS_OPT_CACHE_TTL_DAYS'] = 'Удалять неиспользуемый кеш через, дней';
 $MESS['VPS_OPT_HEADING_PSI'] = 'Замеры PageSpeed Insights';

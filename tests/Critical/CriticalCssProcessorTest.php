@@ -76,6 +76,14 @@ final class CriticalCssProcessorTest extends TestCase
         $this->assertSame('hit', $ctx->stats['critical']);
     }
 
+    public function testExcludedPageKeepsStylesheets(): void
+    {
+        $html = $this->html();
+        $out = $this->optimize($html, ['CRITICAL_EXCLUDE_URLS' => "*-redesign/*\n/services/"], false, $ctx);
+        $this->assertSame($html, $out);
+        $this->assertSame('excluded', $ctx->stats['critical']);
+    }
+
     public function testPreviewModeRemovesFullStylesheets(): void
     {
         $out = $this->optimize($this->html(), [], true);
