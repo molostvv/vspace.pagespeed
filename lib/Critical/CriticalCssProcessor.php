@@ -34,6 +34,15 @@ use Vspace\PageSpeed\Storage\FileStorage;
  * Если включать каждый файл по мере загрузки, файл, который пришёл раньше, но стоит в каскаде раньше другого
  * (main.min.css перед page-articles.min.css), на время перебивает critical — вёрстка первого экрана дёргается
  * (CLS на /articles/ ~0.09 на телефоне). Без модуля такого промежуточного состояния нет: CSS блокирует отрисовку.
+ *
+ * Critical рассчитан на первый экран. Если страница открывается не сверху — перезагрузка или «назад» с прокруткой
+ * ниже первого экрана (браузер восстанавливает позицию), адрес с #якорем, — браузер сразу показал бы середину
+ * страницы без стилей, и она прыгала бы, пока приходит полный CSS (CLS 1.9 против 1.0 без модуля). Поэтому в этих
+ * случаях страница скрыта (visibility на <html>) до включения полного CSS, не дольше 3 с — как без модуля.
+ * Прокрутку восстанавливает браузер (он подправляет её, пока страница грузится); позиция для решения «открыта
+ * не сверху» запоминается в sessionStorage при уходе со страницы (pagehide); к #якорю — прокрутка заново, уже по
+ * полной вёрстке. Где окажется страница, решают и её скрипты: слайдеры до запуска JS выстроены столбиком и
+ * сворачиваются после — так и без модуля.
  */
 final class CriticalCssProcessor implements ProcessorInterface
 {
@@ -225,13 +234,24 @@ final class CriticalCssProcessor implements ProcessorInterface
 
     /**
      * Включает все асинхронные CSS разом, когда загрузятся (или не загрузятся) все $count файлов. Ссылки стоят
-     * после скрипта, поэтому к моменту последней загрузки все они уже в DOM.
+     * после скрипта, поэтому к моменту последней загрузки все они уже в DOM. Страницу, открытую не сверху,
+     * скрывает до этого момента (см. описание класса).
      */
     private static function loaderScript(int $count): string
     {
-        return '(function(w,d,n){var c=0,done=0;function all(){if(done)return;done=1;'
+        return '(function(w,d,n){var c=0,done=0,hold=0,h=d.documentElement,L=location,k="vps_y:"+L.pathname+L.search;'
+            . 'function show(){if(!hold)return;hold=0;'
+            . 'if(L.hash.length>1){try{var t=d.getElementById(decodeURIComponent(L.hash.slice(1)));if(t)t.scrollIntoView()}catch(x){}}'
+            . 'h.style.visibility=""}'
+            . 'try{var s=w.sessionStorage,p=w.performance,v=p&&p.getEntriesByType?p.getEntriesByType("navigation")[0]:null,y=+s.getItem(k)||0;'
+            . 'w.addEventListener("pagehide",function(){try{s.setItem(k,Math.round(w.pageYOffset))}catch(x){}});'
+            . 'if(v&&(v.type==="reload"||v.type==="back_forward")&&y>w.innerHeight)hold=1;'
+            . 'else if(L.hash.length>1)hold=1;'
+            . 'if(hold){h.style.visibility="hidden";setTimeout(show,3000)}'
+            . '}catch(x){}'
+            . 'function all(){if(done)return;done=1;'
             . 'var a=d.querySelectorAll("link[data-vps-async]");'
-            . 'for(var i=0;i<a.length;i++)a[i].media=a[i].getAttribute("data-vps-media")||"all"}'
+            . 'for(var i=0;i<a.length;i++)a[i].media=a[i].getAttribute("data-vps-media")||"all";show()}'
             . 'w.vpsCss=function(l){l.onload=l.onerror=null;if(++c>=n)all()};'
             . 'w.addEventListener("load",all)})(window,document,' . $count . ');';
     }
