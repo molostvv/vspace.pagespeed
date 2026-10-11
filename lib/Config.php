@@ -48,6 +48,8 @@ final class Config
         'FONT_FACE' => 'used',
         'FONT_DISPLAY_SWAP' => 'Y',
         'ASYNC_MODE' => 'preload',
+        // на экранах от этой ширины (компьютер) полный CSS блокирует отрисовку, как без модуля; 0 — асинхронно везде
+        'CRITICAL_DESKTOP_WIDTH' => 1024,
         'CRITICAL_MAX_SIZE' => 204800,
 
         // картинки: без lazy в первом экране, preload фона hero, lazy ниже (img/iframe — нативно, фоны — скриптом)
@@ -100,6 +102,8 @@ final class Config
     public readonly bool $fontDisplaySwap;
     /** preload | print */
     public readonly string $asyncMode;
+    /** px; 0 — полный CSS асинхронный на всех экранах */
+    public readonly int $criticalDesktopWidth;
     public readonly int $criticalMaxSize;
 
     public readonly bool $imagesActive;
@@ -141,6 +145,7 @@ final class Config
         $this->fontFace = in_array($v['FONT_FACE'], ['used', 'all', 'none'], true) ? $v['FONT_FACE'] : 'used';
         $this->fontDisplaySwap = self::flag($v['FONT_DISPLAY_SWAP']);
         $this->asyncMode = $v['ASYNC_MODE'] === 'print' ? 'print' : 'preload';
+        $this->criticalDesktopWidth = max(0, (int)$v['CRITICAL_DESKTOP_WIDTH']);
         $this->criticalMaxSize = max(0, (int)$v['CRITICAL_MAX_SIZE']);
 
         $this->imagesActive = self::flag($v['IMAGES_ACTIVE']);

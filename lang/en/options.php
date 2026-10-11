@@ -52,6 +52,8 @@ $MESS['VPS_OPT_INLINE_STYLES_MIN'] = 'Minimum &lt;style&gt; size, bytes';
 $MESS['VPS_OPT_ASYNC_MODE'] = 'Full CSS loading';
 $MESS['VPS_OPT_ASYNC_MODE_PRELOAD'] = 'preload + apply on load (faster)';
 $MESS['VPS_OPT_ASYNC_MODE_PRINT'] = 'media=print only (low priority)';
+$MESS['VPS_OPT_CRITICAL_DESKTOP_WIDTH'] = 'Full CSS blocks rendering on screens from, px';
+$MESS['VPS_OPT_CRITICAL_DESKTOP_WIDTH_HINT'] = 'On desktop critical CSS barely speeds up the first paint (fast network), while applying the full CSS after it is one long task (restyling the whole page) that hurts TBT. On screens at least this wide the full CSS is linked as without the module, on narrower ones asynchronously. 0 — asynchronously on all screens.';
 $MESS['VPS_OPT_HEADING_CONTENT'] = 'Critical CSS content';
 $MESS['VPS_OPT_DROP_INTERACTION'] = 'Without :hover, :focus, :active';
 $MESS['VPS_OPT_DROP_INTERACTION_HINT'] = 'Interaction states are not needed before the first user action — the full CSS brings them.';

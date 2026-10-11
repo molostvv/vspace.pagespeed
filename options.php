@@ -63,6 +63,7 @@ $vpsTabs = [
         'INLINE_STYLES' => 'checkbox',
         'INLINE_STYLES_MIN' => [0, 10000000],
         'ASYNC_MODE' => ['preload', 'print'],
+        'CRITICAL_DESKTOP_WIDTH' => [0, 10000],
         '#CONTENT' => null,
         'DROP_INTERACTION' => 'checkbox',
         'FONT_FACE' => ['used', 'all', 'none'],

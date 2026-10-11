@@ -52,6 +52,8 @@ $MESS['VPS_OPT_INLINE_STYLES_MIN'] = 'Минимальный размер &lt;st
 $MESS['VPS_OPT_ASYNC_MODE'] = 'Загрузка полного CSS';
 $MESS['VPS_OPT_ASYNC_MODE_PRELOAD'] = 'preload + применение после загрузки (быстрее)';
 $MESS['VPS_OPT_ASYNC_MODE_PRINT'] = 'только media=print (низкий приоритет)';
+$MESS['VPS_OPT_CRITICAL_DESKTOP_WIDTH'] = 'Полный CSS блокирует отрисовку на экранах от, px';
+$MESS['VPS_OPT_CRITICAL_DESKTOP_WIDTH_HINT'] = 'На компьютере critical CSS почти не ускоряет показ (быстрая сеть), а включение полного CSS после показа — одна длинная задача (пересчёт стилей всей страницы), которая портит TBT. На экранах от этой ширины полный CSS подключается как без модуля, на более узких — асинхронно. 0 — асинхронно на всех экранах.';
 $MESS['VPS_OPT_HEADING_CONTENT'] = 'Состав critical CSS';
 $MESS['VPS_OPT_DROP_INTERACTION'] = 'Без :hover, :focus, :active';
 $MESS['VPS_OPT_DROP_INTERACTION_HINT'] = 'Стили состояний взаимодействия не нужны до первого действия пользователя — их принесёт полный CSS.';

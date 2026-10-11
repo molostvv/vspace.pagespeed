@@ -4,7 +4,8 @@
  *
  * Для каждого адреса и устройства:
  *  - лаборатория (Lighthouse, один прогон на серверах Google): оценка, FCP, LCP, CLS, TBT, Speed Index, TTFB.
- *    Значения заметно скачут между прогонами, поэтому прогонов несколько и выводится медиана;
+ *    Значения заметно скачут между прогонами, поэтому прогонов несколько и выводится медиана. Повторный запрос
+ *    того же адреса PSI отдаёт из своего кеша, поэтому со второго прогона к адресу дописывается _psi=<число>;
  *  - поле (CrUX — реальные пользователи Chrome за 28 дней): LCP, CLS, INP. По этим данным Google оценивает
  *    Core Web Vitals для поиска. Они меняются постепенно: эффект выкладки виден через 2–4 недели.
  *
@@ -135,7 +136,11 @@ function main(array $argv, ?string $settingsKey = null): int
             $request = $variant === 'off' ? $url . (str_contains($url, '?') ? '&' : '?') . 'vps=off' : $url;
             foreach ($strategies as $strategy) {
                 for ($run = 1; $run <= $runs; $run++) {
-                    $jobs[] = ['url' => $url, 'request' => $request, 'label' => $variantLabel, 'strategy' => $strategy,
+                    // PSI отдаёт повторный запрос того же адреса из своего кеша (три «прогона» — одна оценка),
+                    // поэтому со второго прогона — свой параметр. Первый — без него: поле (CrUX) ищется по адресу
+                    $unique = $run === 1 ? $request
+                        : $request . (str_contains($request, '?') ? '&' : '?') . '_psi=' . mt_rand(100000, 999999);
+                    $jobs[] = ['url' => $url, 'request' => $unique, 'label' => $variantLabel, 'strategy' => $strategy,
                         'run' => $run, 'attempt' => 1, 'at' => 0.0];
                 }
             }
@@ -348,9 +353,10 @@ function medians(array $rows): array
                 $n = count($values);
                 $median[$column] = $n ? ($n % 2 ? $values[intdiv($n, 2)] : ($values[$n / 2 - 1] + $values[$n / 2]) / 2) : null;
             }
-            $last = end($list);
+            // поле — из первого прогона: у остальных в адресе _psi, и CrUX отдаёт данные всего сайта вместо страницы
+            $field = current(array_filter($list, static fn(array $row): bool => (int)$row['run'] === 1)) ?: end($list);
             foreach (['f_lcp', 'f_cls', 'f_inp', 'f_category', 'f_scope'] as $column) {
-                $median[$column] = $last[$column];
+                $median[$column] = $field[$column];
             }
             $result[$url][$strategy] = $median;
         }

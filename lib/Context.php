@@ -32,6 +32,7 @@ final class Context
      * @param bool $webp браузер умеет WebP (Images\WebpSupport::browser) — картинки подменяются на WebP-копии
      * @param bool $fragment HTML-фрагмент из ответа AJAX: относительные адреса в нём считаются от страницы, куда
      *                       его вставят, а не от $pagePath, — их не трогаем
+     * @param bool $skipCritical без critical CSS: полные CSS подключаются как есть (отладочный ?vps_critical=off)
      */
     public function __construct(
         public readonly Config $config,
@@ -41,6 +42,7 @@ final class Context
         public readonly bool $previewCritical = false,
         public readonly bool $webp = false,
         public readonly bool $fragment = false,
+        public readonly bool $skipCritical = false,
     ) {
     }
 

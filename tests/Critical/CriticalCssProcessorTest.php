@@ -5,6 +5,7 @@ namespace Vspace\PageSpeed\Tests\Critical;
 use PHPUnit\Framework\TestCase;
 use Vspace\PageSpeed\Config;
 use Vspace\PageSpeed\Context;
+use Vspace\PageSpeed\Critical\CriticalCssProcessor;
 use Vspace\PageSpeed\Optimizer;
 
 /**
@@ -61,7 +62,7 @@ final class CriticalCssProcessorTest extends TestCase
             '~<link rel="preload" href="/tpl/css/main.css\?123" as="style"><style data-vps-critical="[0-9a-f]{8}">'
             . '\.header\{height:60px\}\.hero\{background:url\(/tpl/img/h\.jpg\)\}</style>'
             . '<script data-skip-moving="true">\(function\(w,d,n\)\{.*?\}\)\(window,document,1\);</script>'
-            . '<link href="/tpl/css/main.css\?123" type="text/css" rel="stylesheet" media="print" '
+            . '<link href="/tpl/css/main.css\?123" type="text/css" rel="stylesheet" media="\(min-width: 1024px\)" '
             . 'onload="vpsCss\(this\)" onerror="vpsCss\(this\)" data-vps-async data-vps-media="all">'
             . '<noscript><link href="/tpl/css/main.css\?123" type="text/css" rel="stylesheet"></noscript>~',
             $out
@@ -99,10 +100,24 @@ final class CriticalCssProcessorTest extends TestCase
 
         $this->assertStringNotContainsString('<style>', $out);
         $this->assertStringNotContainsString('rel="preload"', $out);
-        $this->assertTrue((bool)preg_match('~<link rel="stylesheet" href="(/bitrix/cache/css/vspace\.pagespeed/[0-9a-f]{2}/[0-9a-f]{32}\.css)" media="print"~', $out, $m));
+        $this->assertTrue((bool)preg_match('~<link rel="stylesheet" href="(/bitrix/cache/css/vspace\.pagespeed/[0-9a-f]{2}/[0-9a-f]{32}\.css)" media="\(min-width: 1024px\)"~', $out, $m));
         $saved = file_get_contents($this->root . $m[1]);
         $this->assertStringContainsString('url(/services/seo/img/a.png)', $saved); // url от адреса страницы переписан
         $this->assertStringContainsString('.hero{color:#fff}', $out);
+    }
+
+    public function testAsyncMediaBlocksOnlyWideScreens(): void
+    {
+        $this->assertSame('(min-width: 1024px)', CriticalCssProcessor::asyncMedia(null, 1024));
+        $this->assertSame('(min-width: 1024px)', CriticalCssProcessor::asyncMedia('all', 1024));
+        $this->assertSame('screen and (min-width: 1200px)', CriticalCssProcessor::asyncMedia('screen', 1200));
+        $this->assertSame('(max-width: 959px) and (min-width: 1024px), print and (min-width: 1024px)',
+            CriticalCssProcessor::asyncMedia(' (max-width: 959px) ,print', 1024));
+        $this->assertSame('print', CriticalCssProcessor::asyncMedia('not print', 1024));
+        $this->assertSame('print', CriticalCssProcessor::asyncMedia('all', 0));
+
+        $out = $this->optimize($this->html(), ['FOLD_BLOCKS' => 2, 'CRITICAL_DESKTOP_WIDTH' => 0]);
+        $this->assertStringContainsString('rel="stylesheet" media="print" onload="vpsCss(this)"', $out);
     }
 
     public function testNothingChangesWithoutLocalCss(): void

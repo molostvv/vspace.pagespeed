@@ -13,6 +13,7 @@ use Bitrix\Main\Context as BitrixContext;
  *   ?vps=off          — страница без оптимизации (сравнить «до/после»);
  *   ?vps_critical=only — только critical CSS, полные CSS не подключаются: видно, всё ли нужное первому
  *                       экрану попало в critical;
+ *   ?vps_critical=off  — без critical CSS (полные CSS блокируют отрисовку, как без модуля), остальное как обычно;
  *   ?vps_debug=1      — статистика в HTML-комментарии в конце страницы и в заголовке X-Vspace-PageSpeed.
  */
 final class RequestGuard

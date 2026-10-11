@@ -66,6 +66,7 @@ final class EventHandler
                 RequestGuard::debugParam('vps_critical') === 'only',
                 WebpSupport::browser((string)$server->get('HTTP_ACCEPT'), (string)$server->get('HTTP_USER_AGENT')),
                 $fragment,
+                RequestGuard::debugParam('vps_critical') === 'off',
             );
             if ($fragment && !$ctx->webp) {
                 return;

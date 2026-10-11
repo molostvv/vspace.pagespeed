@@ -25,10 +25,13 @@ use Vspace\PageSpeed\Storage\FileStorage;
  *   <link rel="preload" href="main.css" as="style">          — ASYNC_MODE=preload: загрузка с высоким приоритетом
  *   <style data-vps-critical="…">…critical…</style>           — на месте первого подключения CSS в head
  *   <script data-skip-moving="true">…vpsCss…</script>          — включает полный CSS
- *   <link rel="stylesheet" href="main.css" media="print" onload="vpsCss(this)" onerror="vpsCss(this)"
+ *   <link rel="stylesheet" href="main.css" media="(min-width: 1024px)" onload="vpsCss(this)" onerror="vpsCss(this)"
  *         data-vps-async data-vps-media="all">
  *   <noscript><link rel="stylesheet" href="main.css"></noscript>
  * Порядок подключений не меняется, поэтому каскад после загрузки полного CSS тот же, что без модуля.
+ *
+ * Асинхронно — только на узких экранах (CRITICAL_DESKTOP_WIDTH, см. asyncMedia): на компьютере полный CSS
+ * блокирует первую отрисовку, как без модуля.
  *
  * Полный CSS включается сразу весь — когда загрузятся все файлы (запасной вариант — событие load окна).
  * Если включать каждый файл по мере загрузки, файл, который пришёл раньше, но стоит в каскаде раньше другого
@@ -66,7 +69,7 @@ final class CriticalCssProcessor implements ProcessorInterface
 
     public function process(Document $doc, Edits $edits, Context $ctx): void
     {
-        if (!$this->config->criticalFor($ctx->pagePath)) {
+        if ($ctx->skipCritical || !$this->config->criticalFor($ctx->pagePath)) {
             $ctx->stats['critical'] = 'excluded';
             return;
         }
@@ -229,12 +232,41 @@ final class CriticalCssProcessor implements ProcessorInterface
                 . ($ref->media !== null ? ' media="' . self::escape($ref->media) . '"' : '') . '>';
             $tag = Tag::parse($original);
         }
-        $tag->set('media', 'print')
+        $tag->set('media', self::asyncMedia($ref->media, $this->config->criticalDesktopWidth))
             ->set('onload', 'vpsCss(this)')
             ->set('onerror', 'vpsCss(this)')
             ->set('data-vps-async', null)
             ->set('data-vps-media', $ref->media ?? 'all');
         return $tag->toHtml() . '<noscript>' . $original . '</noscript>';
+    }
+
+    /**
+     * media асинхронного подключения. На экранах от $width px условие выполняется, и файл блокирует первую
+     * отрисовку, как без модуля: на компьютере critical почти не ускоряет показ (быстрая сеть), зато включение
+     * полного CSS после показа — пересчёт стилей и раскладки всей страницы одной длинной задачей (PSI desktop,
+     * /articles/: TBT 500–900 мс, без critical — 20–90). На узких экранах условие не выполняется: файл грузится
+     * без блокировки, как с media=print, и включается загрузчиком. 0 — print на всех экранах.
+     * Свой media ссылки сохраняется: условие дописывается к каждому запросу списка; запрос с not — print
+     * (дописанное условие поменяло бы его смысл).
+     */
+    public static function asyncMedia(?string $media, int $width): string
+    {
+        if ($width <= 0) {
+            return 'print';
+        }
+        $condition = '(min-width: ' . $width . 'px)';
+        $queries = [];
+        foreach (explode(',', $media ?? '') as $query) {
+            $query = trim($query);
+            if ($query === '' || strcasecmp($query, 'all') === 0) {
+                $queries[] = $condition;
+            } elseif (preg_match('~^not\b~i', $query)) {
+                return 'print';
+            } else {
+                $queries[] = $query . ' and ' . $condition;
+            }
+        }
+        return implode(', ', array_unique($queries));
     }
 
     /**
