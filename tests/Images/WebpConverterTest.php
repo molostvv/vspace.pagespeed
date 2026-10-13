@@ -65,6 +65,30 @@ final class WebpConverterTest extends TestCase
         $this->assertLessThan(filesize($this->dir . '/q90.webp'), filesize($this->dir . '/q40.webp'));
     }
 
+    /** Иконка: заливка и тонкие линии — без потерь не тяжелее, берётся она; фото-шум — остаётся с потерями. */
+    public function testPngLosslessWhenNotMuchHeavier(): void
+    {
+        $icon = imagecreatetruecolor(120, 120);
+        imagealphablending($icon, false);
+        imagesavealpha($icon, true);
+        imagefill($icon, 0, 0, imagecolorallocatealpha($icon, 0, 0, 0, 127));
+        imagefilledellipse($icon, 60, 60, 110, 110, imagecolorallocatealpha($icon, 187, 25, 52, 0));
+        for ($i = 0; $i < 6; $i++) {
+            imageline($icon, 30, 35 + $i * 10, 90, 35 + $i * 10, imagecolorallocatealpha($icon, 255, 255, 255, 0));
+        }
+        imagepng($icon, $this->dir . '/icon.png');
+        imagepng(self::noise(200, 100, true), $this->dir . '/photo.png');
+        $isLossless = fn(string $file): bool => str_contains((string)file_get_contents($file, false, null, 0, 64), 'VP8L');
+
+        $this->assertTrue((new WebpConverter(80, true))->convert($this->dir . '/icon.png', $this->dir . '/icon.webp'));
+        $this->assertTrue($isLossless($this->dir . '/icon.webp'));
+        $this->assertTrue((new WebpConverter(80, true))->convert($this->dir . '/photo.png', $this->dir . '/photo.webp'));
+        $this->assertFalse($isLossless($this->dir . '/photo.webp'));
+        // опция выключена: с потерями иконка тяжелее PNG (1.2 КБ против 0.8) — остаётся исходник
+        $this->assertFalse((new WebpConverter(80))->convert($this->dir . '/icon.png', $this->dir . '/icon2.webp'));
+        $this->assertSame([], glob($this->dir . '/*.tmp'));
+    }
+
     public function testPngKeepsTransparency(): void
     {
         imagepng(self::noise(200, 100, true), $this->dir . '/a.png');

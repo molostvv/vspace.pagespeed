@@ -26,6 +26,8 @@ final class ConfigTest extends TestCase
         $this->assertSame(65, (new Config(['WEBP_QUALITY' => '65']))->webpQuality);
         $this->assertSame(80, (new Config(['WEBP_QUALITY' => '0']))->webpQuality);
         $this->assertSame(80, (new Config(['WEBP_QUALITY' => '101']))->webpQuality);
+        $this->assertTrue((new Config([]))->webpPngLossless);
+        $this->assertFalse((new Config(['WEBP_PNG_LOSSLESS' => 'N']))->webpPngLossless);
     }
 
     public function testExcludeTemplates(): void

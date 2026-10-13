@@ -71,9 +71,12 @@ $vpsTabs = [
         'CRITICAL_MAX_SIZE' => [0, 10000000],
     ],
     'images' => [
+        '#LAZY' => null,
         'IMAGES_ACTIVE' => 'checkbox',
+        '#WEBP' => null,
         'WEBP_ACTIVE' => 'checkbox',
         'WEBP_QUALITY' => [1, 100],
+        'WEBP_PNG_LOSSLESS' => 'checkbox',
         'WEBP_EXCLUDE_FILES' => 'textarea',
     ],
     'js' => [
@@ -141,8 +144,9 @@ if ($vpsRequest->isPost() && check_bitrix_sessid()) {
             }
         }
         if (!$vpsErrors) {
-            // готовые копии новое качество не пересоздаёт (копия сверяется только с датой исходника) — подсказать
-            $vpsQualityChanged = (int)$vpsPosted['WEBP_QUALITY'] !== Options::config()->webpQuality;
+            // готовые копии новое сжатие не пересоздаёт (копия сверяется только с датой исходника) — подсказать
+            $vpsQualityChanged = (int)$vpsPosted['WEBP_QUALITY'] !== Options::config()->webpQuality
+                || ($vpsPosted['WEBP_PNG_LOSSLESS'] === 'Y') !== Options::config()->webpPngLossless;
             foreach ($vpsPosted as $vpsCode => $vpsValue) {
                 Options::set($vpsCode, (string)$vpsValue);
             }
@@ -242,7 +246,7 @@ $vpsValue = static function (string $code) use ($module_id, $vpsPosted): string 
 
         <?php if ($vpsTab === 'images'): ?>
             <?php $vpsWebpStats = $vpsWebp->stats(); ?>
-            <tr class="heading"><td colspan="2"><?= GetMessage('VPS_OPT_HEADING_WEBP') ?></td></tr>
+            <tr class="heading"><td colspan="2"><?= GetMessage('VPS_OPT_HEADING_WEBP_STATE') ?></td></tr>
             <tr>
                 <td width="40%"><?= GetMessage('VPS_OPT_WEBP_LIBRARY') ?></td>
                 <td width="60%"><?= WebpSupport::server()

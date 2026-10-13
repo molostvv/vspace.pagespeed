@@ -60,6 +60,8 @@ final class Config
         'WEBP_ACTIVE' => 'Y',
         // качество WebP (1–100): 80 — в 10–20 раз легче исходника без видимой разницы, у Ammina было 90
         'WEBP_QUALITY' => 80,
+        // PNG без потерь, если это не больше чем в 1.5 раза тяжелее копии с потерями (иконки, простые логотипы)
+        'WEBP_PNG_LOSSLESS' => 'Y',
         // картинки, для которых WebP не делается (сжимаются вручную): пути и маски, как у страниц
         'WEBP_EXCLUDE_FILES' => '',
 
@@ -116,6 +118,7 @@ final class Config
     public readonly bool $webpActive;
     /** 1–100; вне диапазона — 80 */
     public readonly int $webpQuality;
+    public readonly bool $webpPngLossless;
     /** @var list<string> */
     public readonly array $webpExcludeFiles;
 
@@ -163,6 +166,7 @@ final class Config
         $quality = (int)$v['WEBP_QUALITY'];
         $this->webpQuality = $quality >= 1 && $quality <= 100 ? $quality : WebpConverter::QUALITY;
         $this->webpExcludeFiles = self::lines($v['WEBP_EXCLUDE_FILES']);
+        $this->webpPngLossless = self::flag($v['WEBP_PNG_LOSSLESS']);
 
         $this->jsActive = self::flag($v['JS_ACTIVE']);
         $this->jsExcludeFiles = self::lines($v['JS_EXCLUDE_FILES']);

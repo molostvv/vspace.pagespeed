@@ -7,7 +7,10 @@ namespace Vspace\PageSpeed\Images;
  *
  * Качество — настройка WEBP_QUALITY, по умолчанию 80: на картинках сайта файл в 10–20 раз меньше исходного
  * (bg-1920.jpg: 619 КБ -> 37 КБ), разница на глаз не видна; 90 (как было у Ammina) — почти вдвое тяжелее. PNG сохраняется тоже с потерями, но с
- * прозрачностью. Поворот из EXIF применяется к пикселям: браузер поворачивает JPEG по EXIF, а в WebP от GD
+ * прозрачностью; с WEBP_PNG_LOSSLESS PNG кодируется дважды и остаётся копия без потерь, если она не больше чем в
+ * 1.5 раза тяжелее копии с потерями: на иконках и простых логотипах сжатие с потерями размывает тонкие линии и
+ * текст, а без потерь они точь-в-точь, часто того же веса (на 101 PNG сайта: 20 копий без потерь, вес +0.3%).
+ * На диске остаётся одна копия — вторая во временном файле и удаляется. Поворот из EXIF применяется к пикселям: браузер поворачивает JPEG по EXIF, а в WebP от GD
  * метаданных нет.
  *
  * Если WebP не получился меньше исходника хотя бы на 5% (мелкие иконки, уже сжатые PNG), или картинку нельзя
@@ -21,8 +24,10 @@ final class WebpConverter
     /** ~40 Мп: 160 МБ памяти на пиксели — больше на сайте не бывает, а риск фатала по памяти растёт. */
     private const MAX_PIXELS = 40_000_000;
     private const MIN_SAVING = 0.95;
+    /** Копия PNG без потерь берётся, если не тяжелее копии с потерями больше чем во столько раз. */
+    private const LOSSLESS_MAX_RATIO = 1.5;
 
-    public function __construct(private readonly int $quality = self::QUALITY)
+    public function __construct(private readonly int $quality = self::QUALITY, private readonly bool $pngLossless = false)
     {
     }
 
@@ -64,6 +69,9 @@ final class WebpConverter
                 @unlink($tmp);
                 throw new \RuntimeException('GD cannot write WebP for ' . $source);
             }
+            if ($type === IMAGETYPE_PNG && $this->pngLossless) {
+                $tmp = $this->preferLossless($image, $tmp, $target, $source);
+            }
         } finally {
             imagedestroy($image);
         }
@@ -78,6 +86,25 @@ final class WebpConverter
             throw new \RuntimeException('cannot write ' . $target);
         }
         return true;
+    }
+
+    /** Копия без потерь вместо $lossy, если она не намного тяжелее и легче исходника; возвращает путь выбранной. */
+    private function preferLossless(\GdImage $image, string $lossy, string $target, string $source): string
+    {
+        $lossless = $target . '.' . getmypid() . '.lossless.tmp';
+        if (!@imagewebp($image, $lossless, IMG_WEBP_LOSSLESS) || !is_file($lossless)) {
+            @unlink($lossless);
+            return $lossy;
+        }
+        clearstatcache(true, $lossy);
+        clearstatcache(true, $lossless);
+        $size = filesize($lossless);
+        if ($size <= filesize($lossy) * self::LOSSLESS_MAX_RATIO && $size < filesize($source) * self::MIN_SAVING) {
+            @unlink($lossy);
+            return $lossless;
+        }
+        @unlink($lossless);
+        return $lossy;
     }
 
     /** Хватит ли памяти: исходник + копия при повороте, 4 байта на пиксель с запасом. */
