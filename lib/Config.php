@@ -2,6 +2,8 @@
 
 namespace Vspace\PageSpeed;
 
+use Vspace\PageSpeed\Images\WebpConverter;
+
 /**
  * Настройки модуля одним неизменяемым объектом. Настройки общие для всего сайта (без профилей по сайтам и
  * страницам): отключение — списками страниц (EXCLUDE_URLS), доменов (EXCLUDE_HOSTS) и шаблонов (EXCLUDE_TEMPLATES).
@@ -56,6 +58,8 @@ final class Config
         'IMAGES_ACTIVE' => 'Y',
         // WebP-копии JPEG/PNG (конвертирует агент из cron) для браузеров с WebP
         'WEBP_ACTIVE' => 'Y',
+        // качество WebP (1–100): 80 — в 10–20 раз легче исходника без видимой разницы, у Ammina было 90
+        'WEBP_QUALITY' => 80,
 
         // скрипты — после window.onload (как type="deferjs" у Ammina); исключения — те же, что у неё
         'JS_ACTIVE' => 'Y',
@@ -108,6 +112,8 @@ final class Config
 
     public readonly bool $imagesActive;
     public readonly bool $webpActive;
+    /** 1–100; вне диапазона — 80 */
+    public readonly int $webpQuality;
 
     public readonly bool $jsActive;
     /** @var list<string> */
@@ -150,6 +156,8 @@ final class Config
 
         $this->imagesActive = self::flag($v['IMAGES_ACTIVE']);
         $this->webpActive = self::flag($v['WEBP_ACTIVE']);
+        $quality = (int)$v['WEBP_QUALITY'];
+        $this->webpQuality = $quality >= 1 && $quality <= 100 ? $quality : WebpConverter::QUALITY;
 
         $this->jsActive = self::flag($v['JS_ACTIVE']);
         $this->jsExcludeFiles = self::lines($v['JS_EXCLUDE_FILES']);

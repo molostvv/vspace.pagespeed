@@ -73,6 +73,7 @@ $vpsTabs = [
     'images' => [
         'IMAGES_ACTIVE' => 'checkbox',
         'WEBP_ACTIVE' => 'checkbox',
+        'WEBP_QUALITY' => [1, 100],
     ],
     'js' => [
         'JS_ACTIVE' => 'checkbox',
@@ -139,11 +140,13 @@ if ($vpsRequest->isPost() && check_bitrix_sessid()) {
             }
         }
         if (!$vpsErrors) {
+            // готовые копии новое качество не пересоздаёт (копия сверяется только с датой исходника) — подсказать
+            $vpsQualityChanged = (int)$vpsPosted['WEBP_QUALITY'] !== Options::config()->webpQuality;
             foreach ($vpsPosted as $vpsCode => $vpsValue) {
                 Options::set($vpsCode, (string)$vpsValue);
             }
             Agent::register(); // агента WebP нет у модуля, установленного до появления WebP
-            LocalRedirect($vpsRedirect . '&' . $tabControl->ActiveTabParam());
+            LocalRedirect($vpsRedirect . ($vpsQualityChanged ? '&vps_webp_quality=Y' : '') . '&' . $tabControl->ActiveTabParam());
         }
     }
 }
@@ -153,6 +156,9 @@ if ($vpsErrors) {
 }
 if ($vpsRequest->getQuery('vps_cleared') === 'Y') {
     CAdminMessage::ShowNote(GetMessage('VPS_OPT_CACHE_CLEARED'));
+}
+if ($vpsRequest->getQuery('vps_webp_quality') === 'Y') {
+    CAdminMessage::ShowNote(GetMessage('VPS_OPT_WEBP_QUALITY_CHANGED'));
 }
 if ($vpsRequest->getQuery('vps_webp_cleared') === 'Y') {
     CAdminMessage::ShowNote(GetMessage('VPS_OPT_WEBP_CLEARED'));

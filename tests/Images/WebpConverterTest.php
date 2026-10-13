@@ -57,6 +57,14 @@ final class WebpConverterTest extends TestCase
         $this->assertSame([], glob($this->dir . '/*.tmp'));
     }
 
+    public function testQualityAffectsSize(): void
+    {
+        imagejpeg(self::noise(300, 200), $this->dir . '/q.jpg', 100);
+        $this->assertTrue((new WebpConverter(40))->convert($this->dir . '/q.jpg', $this->dir . '/q40.webp'));
+        $this->assertTrue((new WebpConverter(90))->convert($this->dir . '/q.jpg', $this->dir . '/q90.webp'));
+        $this->assertLessThan(filesize($this->dir . '/q90.webp'), filesize($this->dir . '/q40.webp'));
+    }
+
     public function testPngKeepsTransparency(): void
     {
         imagepng(self::noise(200, 100, true), $this->dir . '/a.png');

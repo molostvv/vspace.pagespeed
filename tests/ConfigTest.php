@@ -20,6 +20,14 @@ final class ConfigTest extends TestCase
         $this->assertSame(['panel', 'section', 'hero'], $config->foldBlockClasses);
     }
 
+    public function testWebpQuality(): void
+    {
+        $this->assertSame(80, (new Config([]))->webpQuality);
+        $this->assertSame(65, (new Config(['WEBP_QUALITY' => '65']))->webpQuality);
+        $this->assertSame(80, (new Config(['WEBP_QUALITY' => '0']))->webpQuality);
+        $this->assertSame(80, (new Config(['WEBP_QUALITY' => '101']))->webpQuality);
+    }
+
     public function testExcludeTemplates(): void
     {
         $this->assertSame(['demis_group', 'black_theme', 'black_theme_sidebar', 'black_theme_sidebar_white', 'seo_dark', 'seo_light', 'double_d'],
