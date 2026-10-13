@@ -5,6 +5,7 @@ namespace Vspace\PageSpeed\Images;
 use Vspace\PageSpeed\Context;
 use Vspace\PageSpeed\Css\UrlRebaser;
 use Vspace\PageSpeed\Html\Tag;
+use Vspace\PageSpeed\PathMatcher;
 
 /**
  * Подменяет в атрибутах тега адреса локальных JPEG/PNG на готовые WebP-копии (WebpStore). Копии ещё нет —
@@ -13,7 +14,8 @@ use Vspace\PageSpeed\Html\Tag;
  * Атрибуты: src, srcset, poster, фоны в style и data-атрибуты, из которых картинку подставляют скрипты —
  * ленивые загрузчики (data-src, data-srcset, data-bg…) и скрипты сайта (data-image — random.js,
  * data-adapt — мобильная картинка плиток в article-list.js, data-poster — постеры видео на главной). Ссылки (href) не трогаются: это может быть
- * скачивание оригинала. Внешние адреса и адреса без файла на диске остаются как есть.
+ * скачивание оригинала. Внешние адреса и адреса без файла на диске остаются как есть, как и картинки из
+ * WEBP_EXCLUDE_FILES (их сжимают вручную): без подмены и без очереди.
  */
 final class WebpRewriter
 {
@@ -29,7 +31,8 @@ final class WebpRewriter
     /** @var array<string, ?string> адрес -> адрес копии (null — без замены) */
     private array $memo = [];
 
-    public function __construct(private readonly WebpStore $store)
+    /** @param list<string> $exclude правила путей (PathMatcher) картинок, которые не трогать */
+    public function __construct(private readonly WebpStore $store, private readonly array $exclude = [])
     {
     }
 
@@ -102,7 +105,7 @@ final class WebpRewriter
             return null;
         }
         $file = rawurldecode($path);
-        if (!WebpStore::validPath($file)) {
+        if (!WebpStore::validPath($file) || ($this->exclude && PathMatcher::matchPath($file, $this->exclude))) {
             return null;
         }
         switch ($this->store->status($file)) {

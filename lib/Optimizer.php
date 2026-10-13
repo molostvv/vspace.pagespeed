@@ -44,7 +44,7 @@ final class Optimizer
     {
         $webp = $config->webpActive && WebpSupport::server();
         if ($fragment) {
-            return new self($webp ? [new ImagesProcessor($config, new WebpRewriter(new WebpStore($documentRoot)), false)] : []);
+            return new self($webp ? [new ImagesProcessor($config, new WebpRewriter(new WebpStore($documentRoot), $config->webpExcludeFiles), false)] : []);
         }
         $processors = [];
         if ($config->criticalActive) {
@@ -60,7 +60,7 @@ final class Optimizer
             $processors[] = new CriticalCssProcessor($config, $builder, self::publicStorage($documentRoot));
         }
         if ($config->imagesActive || $webp) {
-            $processors[] = new ImagesProcessor($config, $webp ? new WebpRewriter(new WebpStore($documentRoot)) : null);
+            $processors[] = new ImagesProcessor($config, $webp ? new WebpRewriter(new WebpStore($documentRoot), $config->webpExcludeFiles) : null);
         }
         if ($config->jsActive) {
             $processors[] = new DeferJsProcessor($config);

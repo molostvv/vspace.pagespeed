@@ -157,6 +157,24 @@ final class ImagesProcessorTest extends TestCase
         }
     }
 
+    public function testWebpExcludedImagesStayAsIs(): void
+    {
+        $root = $this->site(['/img/a.jpg' => 'webp', '/img/logos/l.png' => 'webp', '/img/logos/new.png' => null]);
+        $html = '<!DOCTYPE html><html><head></head><body>'
+            . '<img src="/img/a.jpg"><img src="/img/logos/l.png"><img src="/img/logos/new.png">'
+            . '</body></html>';
+        try {
+            $out = $this->optimizeWebp($html, $root, true, ['WEBP_EXCLUDE_FILES' => "/img/logos/*.png\n/other/"], $ctx);
+            $this->assertStringContainsString('<img src="/upload/vspace.pagespeed/webp/img/a.jpg.webp">', $out);
+            // исключённые: ни готовая копия, ни очередь
+            $this->assertStringContainsString('<img src="/img/logos/l.png"><img src="/img/logos/new.png">', $out);
+            $this->assertSame(1, $ctx->stats['webp']);
+            $this->assertArrayNotHasKey('webp_queued', $ctx->stats);
+        } finally {
+            $this->removeSite($root);
+        }
+    }
+
     public function testAjaxFragmentGetsOnlyWebp(): void
     {
         $root = $this->site(['/img/a.jpg' => 'webp', '/ajax/img/rel.jpg' => 'webp']);

@@ -74,6 +74,7 @@ $vpsTabs = [
         'IMAGES_ACTIVE' => 'checkbox',
         'WEBP_ACTIVE' => 'checkbox',
         'WEBP_QUALITY' => [1, 100],
+        'WEBP_EXCLUDE_FILES' => 'textarea',
     ],
     'js' => [
         'JS_ACTIVE' => 'checkbox',

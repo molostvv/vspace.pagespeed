@@ -60,6 +60,8 @@ final class Config
         'WEBP_ACTIVE' => 'Y',
         // качество WebP (1–100): 80 — в 10–20 раз легче исходника без видимой разницы, у Ammina было 90
         'WEBP_QUALITY' => 80,
+        // картинки, для которых WebP не делается (сжимаются вручную): пути и маски, как у страниц
+        'WEBP_EXCLUDE_FILES' => '',
 
         // скрипты — после window.onload (как type="deferjs" у Ammina); исключения — те же, что у неё
         'JS_ACTIVE' => 'Y',
@@ -114,6 +116,8 @@ final class Config
     public readonly bool $webpActive;
     /** 1–100; вне диапазона — 80 */
     public readonly int $webpQuality;
+    /** @var list<string> */
+    public readonly array $webpExcludeFiles;
 
     public readonly bool $jsActive;
     /** @var list<string> */
@@ -158,6 +162,7 @@ final class Config
         $this->webpActive = self::flag($v['WEBP_ACTIVE']);
         $quality = (int)$v['WEBP_QUALITY'];
         $this->webpQuality = $quality >= 1 && $quality <= 100 ? $quality : WebpConverter::QUALITY;
+        $this->webpExcludeFiles = self::lines($v['WEBP_EXCLUDE_FILES']);
 
         $this->jsActive = self::flag($v['JS_ACTIVE']);
         $this->jsExcludeFiles = self::lines($v['JS_EXCLUDE_FILES']);

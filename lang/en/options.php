@@ -81,6 +81,8 @@ $MESS['VPS_OPT_WEBP_QUEUE'] = 'Waiting for conversion';
 $MESS['VPS_OPT_WEBP_CLEAR'] = 'Delete WebP copies';
 $MESS['VPS_OPT_WEBP_QUALITY'] = 'WebP quality (1–100)';
 $MESS['VPS_OPT_WEBP_QUALITY_HINT'] = '80 — files 10–20 times lighter than originals with no visible difference; 90 — almost twice heavier (Ammina used it); below 70 artifacts are visible on photos. Applies to PNG too (transparency is kept). The new quality is used for new copies; to recreate existing ones — «Delete WebP copies».';
+$MESS['VPS_OPT_WEBP_EXCLUDE_FILES'] = 'No WebP for images';
+$MESS['VPS_OPT_WEBP_EXCLUDE_FILES_HINT'] = 'Images you compress yourself: the module serves them as is, without a WebP copy. One rule per line: <code>/upload/iblock/0ce/</code> — the whole folder, <code>/local/templates/demis_edges/img/logos/*.png</code> — a mask, <code>~\.png$</code> — a regular expression. Lazy loading still applies (use <code>data-lazy="N"</code> on the image to skip it). Copies already made for such images are no longer used.';
 $MESS['VPS_OPT_WEBP_QUALITY_CHANGED'] = 'WebP quality changed. New copies will use it, existing ones stay as they are — to recreate them press «Delete WebP copies» on the «Images» tab (the agent recreates copies within a few minutes, originals are served meanwhile).';
 $MESS['VPS_OPT_WEBP_CLEARED'] = 'WebP copies and the queue are deleted. New copies will appear as pages are opened.';
 $MESS['VPS_OPT_WEBP_LIBRARY'] = 'Conversion';
