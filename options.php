@@ -243,8 +243,14 @@ $vpsValue = static function (string $code) use ($module_id, $vpsPosted): string 
             <?php $vpsWebpStats = $vpsWebp->stats(); ?>
             <tr class="heading"><td colspan="2"><?= GetMessage('VPS_OPT_HEADING_WEBP') ?></td></tr>
             <tr>
-                <td width="40%"><?= GetMessage('VPS_OPT_WEBP_CRON') ?></td>
-                <td width="60%"><?= $vpsCronAge === null ? GetMessage('VPS_OPT_WEBP_CRON_NEVER') : GetMessage('VPS_OPT_WEBP_CRON_AGO', ['#AGO#' => $vpsAgo($vpsCronAge)]) ?></td>
+                <td width="40%"><?= GetMessage('VPS_OPT_WEBP_LIBRARY') ?></td>
+                <td width="60%"><?= WebpSupport::server()
+                    ? GetMessage('VPS_OPT_WEBP_LIBRARY_OK', ['#GD#' => htmlspecialcharsbx((string)(gd_info()['GD Version'] ?? '')), '#PHP#' => PHP_VERSION])
+                    : GetMessage('VPS_OPT_WEBP_LIBRARY_NO') ?></td>
+            </tr>
+            <tr>
+                <td><?= GetMessage('VPS_OPT_WEBP_CRON') ?></td>
+                <td><?= $vpsCronAge === null ? GetMessage('VPS_OPT_WEBP_CRON_NEVER') : GetMessage('VPS_OPT_WEBP_CRON_AGO', ['#AGO#' => $vpsAgo($vpsCronAge)]) ?></td>
             </tr>
             <tr>
                 <td><?= GetMessage('VPS_OPT_WEBP_FILES') ?></td>

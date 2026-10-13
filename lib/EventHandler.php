@@ -36,7 +36,8 @@ final class EventHandler
                 'css' => $page && $config->criticalFor(RequestGuard::path()),
                 'lazy' => $page && $config->imagesActive,
                 'js' => $page && $config->jsActive,
-                'images' => $config->webpActive && (new WebpStore(self::documentRoot()))->cronWorks(),
+                // её WebP выключаем, только если наши копии появляются: GD умеет WebP и агент работает по cron
+                'images' => $config->webpActive && WebpSupport::server() && (new WebpStore(self::documentRoot()))->cronWorks(),
             ]));
             AmminaBridge::disable($categories);
         } catch (\Throwable $e) {
