@@ -20,6 +20,8 @@ class vspace_pagespeed extends CModule
     public $MODULE_NAME;
     public $MODULE_DESCRIPTION;
     public $PARTNER_NAME = 'vspace';
+    /** Первым в «Настройках модулей» — сразу под главным модулем (у него -1, у остальных по умолчанию 10000). */
+    public $MODULE_SORT = 1;
 
     /**
      * Обработчики main: [событие, метод, сортировка]. OnEndBufferContent — после ammina.optimizer (1000),

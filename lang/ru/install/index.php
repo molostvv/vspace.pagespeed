@@ -1,3 +1,3 @@
 <?php
-$MESS['VPS_MODULE_NAME'] = 'Скорость загрузки страниц';
-$MESS['VPS_MODULE_DESC'] = 'Ускорение отрисовки страниц сайта. Critical CSS: стили первого экрана встраиваются в HTML, полные CSS загружаются асинхронно.';
+$MESS['VPS_MODULE_NAME'] = 'vspace.pagespeed — скорость загрузки страниц';
+$MESS['VPS_MODULE_DESC'] = 'Замена ammina.optimizer: critical CSS, отложенная загрузка картинок, WebP-копии, отложенный JS.';
