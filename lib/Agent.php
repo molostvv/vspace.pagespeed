@@ -95,9 +95,10 @@ final class Agent
         if ((defined('BX_CRONTAB') && BX_CRONTAB === true) || PHP_SAPI === 'cli') {
             try {
                 $store = new WebpStore(self::root());
-                $store->markCron();
+                $webp = WebpSupport::server();
+                $store->markCron($webp, PHP_VERSION, WebpSupport::gdVersion());
                 $config = Options::config();
-                if ($config->active && $config->webpActive && WebpSupport::server()) {
+                if ($config->active && $config->webpActive && $webp) {
                     $store->processQueue(new WebpConverter($config->webpQuality, $config->webpPngLossless), self::WEBP_SECONDS, static function (\Throwable $e, string $path): void {
                         self::log(new \RuntimeException('WebP ' . $path . ': ' . $e->getMessage(), 0, $e));
                     });

@@ -39,9 +39,18 @@ final class WebpSupport
         return false;
     }
 
-    /** GD собран с WebP (на BitrixVM — да; Imagick и cwebp не нужны). */
+    /**
+     * GD этого PHP собран с WebP (на BitrixVM — да; Imagick и cwebp не нужны). Конвертирует агент из cron,
+     * а его PHP может отличаться от PHP сайта — что умеет агент, см. WebpStore::canConvert().
+     */
     public static function server(): bool
     {
         return function_exists('imagewebp') && function_exists('imagecreatefromjpeg') && function_exists('imagecreatefrompng');
+    }
+
+    /** Версия GD этого PHP («2.3.3», «bundled (2.1.0 compatible)»); пусто — GD нет. */
+    public static function gdVersion(): string
+    {
+        return function_exists('gd_info') ? (string)(gd_info()['GD Version'] ?? '') : '';
     }
 }

@@ -127,11 +127,31 @@ final class WebpStoreTest extends TestCase
     {
         $this->assertNull($this->store->cronAge());
         $this->assertFalse($this->store->cronWorks());
-        $this->store->markCron();
+        $this->store->markCron(true, '8.1.29', '2.3.3');
         $this->assertLessThan(5, $this->store->cronAge());
         $this->assertTrue($this->store->cronWorks());
         touch($this->root . '/upload/vspace.pagespeed/cron.txt', time() - 3600);
         clearstatcache();
         $this->assertFalse($this->store->cronWorks());
+    }
+
+    /** PHP агента (cron) и PHP сайта бывают разными: решает отчёт агента, без отчёта — PHP сайта. */
+    public function testCanConvertByAgentReport(): void
+    {
+        $file = $this->root . '/upload/vspace.pagespeed/cron.txt';
+        $this->assertNull($this->store->cronInfo());
+        $this->assertSame(WebpSupport::server(), $this->store->canConvert());
+
+        $this->store->markCron(true, '8.1.29', "bundled (2.1.0\ncompatible)");
+        $this->assertSame(['webp' => true, 'php' => '8.1.29', 'gd' => 'bundled (2.1.0 compatible)'], $this->store->cronInfo());
+        $this->assertTrue($this->store->canConvert());
+
+        $this->store->markCron(false, '8.3.36', '');
+        $this->assertSame(['webp' => false, 'php' => '8.3.36', 'gd' => ''], $this->store->cronInfo());
+        $this->assertFalse($this->store->canConvert()); // даже если PHP сайта (тестов) WebP умеет
+
+        file_put_contents($file, (string)time()); // старый формат — только время
+        $this->assertNull($this->store->cronInfo());
+        $this->assertSame(WebpSupport::server(), $this->store->canConvert());
     }
 }

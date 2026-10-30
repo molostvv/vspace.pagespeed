@@ -13,7 +13,9 @@ namespace Vspace\PageSpeed\Images;
  *  - queue/<md5 пути> — картинка ждёт конвертации (содержимое — путь). Ставит запрос страницы, разбирает
  *    агент (processQueue) — только из cron; на время конвертации файл переименовывается в .work: если
  *    процесс упал на этой картинке (память, битый файл), следующий запуск отметит её «отдавать исходник»;
- *  - cron.txt — время последнего запуска агента из cron (по нему настройки предупреждают, что cron не работает).
+ *  - cron.txt — последний запуск агента из cron (время файла; по нему настройки предупреждают, что cron не
+ *    работает) и что умеет PHP агента: строки «webp=Y|N», «php=…», «gd=…». PHP агента (CLI) и PHP сайта
+ *    бывают разными: подмена адресов и очередь GD не нужен, поэтому сайт смотрит на агента (canConvert).
  *
  * Пути — от корня сайта, раскодированные (как файл лежит на диске).
  */
@@ -155,9 +157,36 @@ final class WebpStore
         return $stats;
     }
 
-    public function markCron(): void
+    /** Отметка запуска агента из cron и что умеет его PHP: $webp — WebpSupport::server() в процессе агента. */
+    public function markCron(bool $webp, string $php = PHP_VERSION, string $gd = ''): void
     {
-        self::writeAtomic($this->documentRoot . self::CRON_FILE, (string)time());
+        $line = static fn(string $value): string => preg_replace('/[\r\n]+/', ' ', $value);
+        self::writeAtomic($this->documentRoot . self::CRON_FILE, time() . "\nwebp=" . ($webp ? 'Y' : 'N')
+            . "\nphp=" . $line($php) . "\ngd=" . $line($gd) . "\n");
+    }
+
+    /**
+     * Что сообщил агент о своём PHP при последнем запуске; null — не запускался или cron.txt старого формата
+     * (только время).
+     * @return array{webp:bool, php:string, gd:string}|null
+     */
+    public function cronInfo(): ?array
+    {
+        $text = @file_get_contents($this->documentRoot . self::CRON_FILE);
+        if ($text === false || !preg_match('/^webp=([YN])$/m', $text, $m)) {
+            return null;
+        }
+        $value = static fn(string $key): string => preg_match('/^' . $key . '=(.*)$/m', $text, $v) ? trim($v[1]) : '';
+        return ['webp' => $m[1] === 'Y', 'php' => $value('php'), 'gd' => $value('gd')];
+    }
+
+    /**
+     * Появятся ли копии: умеет ли WebP PHP агента (по его отчёту в cron.txt). Отчёта ещё нет — по PHP сайта,
+     * обычно это тот же PHP.
+     */
+    public function canConvert(): bool
+    {
+        return $this->cronInfo()['webp'] ?? WebpSupport::server();
     }
 
     /** Агент недавно запускался из cron — копии появляются. */

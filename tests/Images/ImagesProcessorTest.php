@@ -157,6 +157,31 @@ final class ImagesProcessorTest extends TestCase
         }
     }
 
+    /** WebP на странице включается по отчёту агента из cron, а не по GD PHP сайта. */
+    public function testWebpFollowsAgentReport(): void
+    {
+        $root = $this->site(['/img/a.jpg' => 'webp', '/img/new.jpg' => null]);
+        $html = '<!DOCTYPE html><html><head></head><body><img src="/img/a.jpg"><img src="/img/new.jpg"></body></html>';
+        $store = new WebpStore($root);
+        try {
+            // агент не умеет WebP — копии не появятся: ни подмены, ни очереди
+            $store->markCron(false, '8.3.36', '');
+            $out = $this->optimizeWebp($html, $root, true, [], $ctx);
+            $this->assertStringContainsString('<img src="/img/a.jpg"><img src="/img/new.jpg">', $out);
+            $this->assertArrayNotHasKey('webp', $ctx->stats);
+            $this->assertSame(0, $store->stats()['queue']);
+
+            // агент умеет — готовые копии отдаются, новые ставятся в очередь
+            $store->markCron(true, '8.1.29', '2.3.3');
+            $out = $this->optimizeWebp($html, $root, true, [], $ctx);
+            $this->assertStringContainsString('<img src="/upload/vspace.pagespeed/webp/img/a.jpg.webp"><img src="/img/new.jpg">', $out);
+            $this->assertSame(1, $ctx->stats['webp']);
+            $this->assertSame(1, $ctx->stats['webp_queued']);
+        } finally {
+            $this->removeSite($root);
+        }
+    }
+
     public function testWebpExcludedImagesStayAsIs(): void
     {
         $root = $this->site(['/img/a.jpg' => 'webp', '/img/logos/l.png' => 'webp', '/img/logos/new.png' => null]);

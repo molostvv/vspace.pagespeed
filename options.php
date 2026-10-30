@@ -178,11 +178,17 @@ $vpsAgo = static function (int $seconds): string {
     }
     return GetMessage('VPS_OPT_AGO_S', ['#N#' => $seconds]);
 };
-// WebP включён, но копии не появятся: в GD нет WebP или агент не запускается из cron
+// WebP включён, но копии не появятся: в GD у PHP агента нет WebP или агент не запускается из cron.
+// Что умеет PHP агента, он пишет в cron.txt; PHP сайта (эта страница) может быть другим.
 $vpsCronAge = $vpsWebp->cronAge();
+$vpsCronInfo = $vpsWebp->cronInfo();
 if (Options::config()->active && Options::config()->webpActive) {
-    if (!WebpSupport::server()) {
-        CAdminMessage::ShowMessage(['MESSAGE' => GetMessage('VPS_OPT_WEBP_NO_GD'), 'TYPE' => 'ERROR']);
+    if (!$vpsWebp->canConvert()) {
+        CAdminMessage::ShowMessage([
+            'MESSAGE' => $vpsCronInfo === null ? GetMessage('VPS_OPT_WEBP_NO_GD')
+                : GetMessage('VPS_OPT_WEBP_NO_GD_CRON', ['#PHP#' => htmlspecialcharsbx($vpsCronInfo['php'])]),
+            'TYPE' => 'ERROR',
+        ]);
     } elseif (!$vpsWebp->cronWorks()) {
         $vpsCronMode = Option::get('main', 'agents_use_crontab', 'N') === 'Y' || (defined('BX_CRONTAB_SUPPORT') && BX_CRONTAB_SUPPORT === true)
             || Option::get('main', 'check_agents', 'Y') === 'N';
@@ -249,10 +255,24 @@ $vpsValue = static function (string $code) use ($module_id, $vpsPosted): string 
             <tr class="heading"><td colspan="2"><?= GetMessage('VPS_OPT_HEADING_WEBP_STATE') ?></td></tr>
             <tr>
                 <td width="40%"><?= GetMessage('VPS_OPT_WEBP_LIBRARY') ?></td>
-                <td width="60%"><?= WebpSupport::server()
-                    ? GetMessage('VPS_OPT_WEBP_LIBRARY_OK', ['#GD#' => htmlspecialcharsbx((string)(gd_info()['GD Version'] ?? '')), '#PHP#' => PHP_VERSION])
-                    : GetMessage('VPS_OPT_WEBP_LIBRARY_NO') ?></td>
+                <td width="60%"><?php if ($vpsCronInfo !== null): // по отчёту агента: конвертирует его PHP ?>
+                    <?= $vpsCronInfo['webp']
+                        ? GetMessage('VPS_OPT_WEBP_LIBRARY_CRON_OK', ['#GD#' => htmlspecialcharsbx($vpsCronInfo['gd']), '#PHP#' => htmlspecialcharsbx($vpsCronInfo['php'])])
+                        : GetMessage('VPS_OPT_WEBP_LIBRARY_CRON_NO', ['#PHP#' => htmlspecialcharsbx($vpsCronInfo['php'])]) ?>
+                <?php else: // агент ещё не отчитывался — по PHP сайта ?>
+                    <?= WebpSupport::server()
+                        ? GetMessage('VPS_OPT_WEBP_LIBRARY_OK', ['#GD#' => htmlspecialcharsbx(WebpSupport::gdVersion()), '#PHP#' => PHP_VERSION])
+                        : GetMessage('VPS_OPT_WEBP_LIBRARY_NO') ?>
+                <?php endif; ?></td>
             </tr>
+            <?php if ($vpsCronInfo !== null && ($vpsCronInfo['php'] !== PHP_VERSION || $vpsCronInfo['webp'] !== WebpSupport::server())): ?>
+                <tr>
+                    <td><?= GetMessage('VPS_OPT_WEBP_SITE_PHP') ?></td>
+                    <td><?= WebpSupport::server()
+                        ? GetMessage('VPS_OPT_WEBP_SITE_PHP_OK', ['#PHP#' => PHP_VERSION, '#GD#' => htmlspecialcharsbx(WebpSupport::gdVersion())])
+                        : GetMessage('VPS_OPT_WEBP_SITE_PHP_NO', ['#PHP#' => PHP_VERSION]) ?></td>
+                </tr>
+            <?php endif; ?>
             <tr>
                 <td><?= GetMessage('VPS_OPT_WEBP_CRON') ?></td>
                 <td><?= $vpsCronAge === null ? GetMessage('VPS_OPT_WEBP_CRON_NEVER') : GetMessage('VPS_OPT_WEBP_CRON_AGO', ['#AGO#' => $vpsAgo($vpsCronAge)]) ?></td>

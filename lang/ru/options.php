@@ -93,6 +93,12 @@ $MESS['VPS_OPT_WEBP_NO_GD'] = 'WebP-копии не делаются: PHP на �
 $MESS['VPS_OPT_WEBP_LIBRARY'] = 'Конвертация';
 $MESS['VPS_OPT_WEBP_LIBRARY_OK'] = 'GD #GD# (PHP #PHP#), WebP поддерживается';
 $MESS['VPS_OPT_WEBP_LIBRARY_NO'] = '<span style="color:#c00">нет: в PHP нет GD с поддержкой WebP</span> — копии не делаются, отдаются исходники';
+$MESS['VPS_OPT_WEBP_NO_GD_CRON'] = 'WebP-копии не делаются: PHP агента из cron (#PHP#) собран без поддержки WebP в GD (нет функции imagewebp). Посетители получают исходные JPEG/PNG; WebP Ammina, если она стоит, не выключается.';
+$MESS['VPS_OPT_WEBP_LIBRARY_CRON_OK'] = 'GD #GD# (PHP #PHP# — агент из cron), WebP поддерживается';
+$MESS['VPS_OPT_WEBP_LIBRARY_CRON_NO'] = '<span style="color:#c00">нет: в PHP агента из cron (#PHP#) нет GD с поддержкой WebP</span> — копии не делаются, отдаются исходники';
+$MESS['VPS_OPT_WEBP_SITE_PHP'] = 'PHP сайта';
+$MESS['VPS_OPT_WEBP_SITE_PHP_OK'] = 'PHP #PHP#, GD #GD#, WebP поддерживается';
+$MESS['VPS_OPT_WEBP_SITE_PHP_NO'] = 'PHP #PHP#, в GD нет WebP — не мешает: копии делает агент из cron, сайт только отдаёт готовые';
 $MESS['VPS_OPT_WEBP_NO_CRON'] = 'WebP-копии не делаются: агенты не выполняются по cron';
 $MESS['VPS_OPT_WEBP_NO_CRON_HITS'] = 'Агенты Битрикса выполняются на хитах посетителей, а конвертация в WebP (до 20 секунд за запуск) работает только в агенте из cron, чтобы не задерживать страницы. Переведите агенты на cron — <a href="#HELP#" target="_blank">как это сделать</a>. Пока копий нет, браузеры получают исходные JPEG/PNG (или WebP от Ammina, если она установлена).';
 $MESS['VPS_OPT_WEBP_NO_CRON_SILENT'] = 'Агенты переведены на cron, но агент конвертации #AGO#: похоже, задание cron не выполняется. Проверьте, что cron каждую минуту запускает <code>bitrix/modules/main/tools/cron_events.php</code> — <a href="#HELP#" target="_blank">подробнее</a>. Пока копий нет, браузеры получают исходные JPEG/PNG (или WebP от Ammina, если она установлена).';

@@ -11,7 +11,6 @@ use Vspace\PageSpeed\Html\Edits;
 use Vspace\PageSpeed\Images\ImagesProcessor;
 use Vspace\PageSpeed\Images\WebpRewriter;
 use Vspace\PageSpeed\Images\WebpStore;
-use Vspace\PageSpeed\Images\WebpSupport;
 use Vspace\PageSpeed\Js\DeferJsProcessor;
 use Vspace\PageSpeed\Processor\ProcessorInterface;
 use Vspace\PageSpeed\Storage\FileStorage;
@@ -38,13 +37,16 @@ final class Optimizer
     /**
      * Конвейер по настройкам: critical CSS, картинки (lazyload и WebP), отложенный JS.
      * Для HTML-фрагмента (ответ AJAX) — только WebP: ни head, ни первого экрана у фрагмента нет.
-     * WebP — только если GD на сервере его умеет: иначе копии не появятся, и очередь копилась бы зря.
+     * WebP — только если копии могут появиться: GD с WebP есть у PHP агента из cron (WebpStore::canConvert),
+     * иначе очередь копилась бы зря. Сам PHP сайта WebP уметь не обязан: он только подменяет адреса на готовые
+     * копии и ставит картинки в очередь.
      */
     public static function create(Config $config, string $documentRoot, bool $fragment = false): self
     {
-        $webp = $config->webpActive && WebpSupport::server();
+        $store = new WebpStore($documentRoot);
+        $webp = $config->webpActive && $store->canConvert();
         if ($fragment) {
-            return new self($webp ? [new ImagesProcessor($config, new WebpRewriter(new WebpStore($documentRoot), $config->webpExcludeFiles), false)] : []);
+            return new self($webp ? [new ImagesProcessor($config, new WebpRewriter($store, $config->webpExcludeFiles), false)] : []);
         }
         $processors = [];
         if ($config->criticalActive) {
@@ -60,7 +62,7 @@ final class Optimizer
             $processors[] = new CriticalCssProcessor($config, $builder, self::publicStorage($documentRoot));
         }
         if ($config->imagesActive || $webp) {
-            $processors[] = new ImagesProcessor($config, $webp ? new WebpRewriter(new WebpStore($documentRoot), $config->webpExcludeFiles) : null);
+            $processors[] = new ImagesProcessor($config, $webp ? new WebpRewriter($store, $config->webpExcludeFiles) : null);
         }
         if ($config->jsActive) {
             $processors[] = new DeferJsProcessor($config);
