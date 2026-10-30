@@ -22,7 +22,11 @@
  *   --parallel=4                одновременных запросов к API
  *   --key=<ключ>                ключ API; иначе переменная PSI_API_KEY, иначе настройка модуля
  *                               «Ключ API PageSpeed Insights» (скрипт поднимает ядро Битрикса своего сайта)
+ *   --report                    без замеров: только пересобрать HTML-отчёт по файлу результатов
  * Без адресов измеряются основные типы страниц (DEFAULT_PATHS).
+ *
+ * История: каждый запуск дописывается в CSV (--out), и рядом пересобирается psi-report.html — последний замер,
+ * графики и таблица по датам, с модулем и без (tools/psi-report.php). Открывать в браузере.
  *
  * Ключ: Google Cloud Console → включить «PageSpeed Insights API» → Учётные данные → Ключ API (бесплатно,
  * 25 000 запросов в день). Без ключа общая квота обычно исчерпана — ответ 429.
@@ -98,10 +102,20 @@ if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
 
 function main(array $argv, ?string $settingsKey = null): int
 {
-    $options = getopt('', ['ab', 'label:', 'compare:', 'runs:', 'strategy:', 'base:', 'query:', 'out:', 'parallel:', 'key:', 'help'], $restIndex);
+    $options = getopt('', ['ab', 'label:', 'compare:', 'runs:', 'strategy:', 'base:', 'query:', 'out:', 'parallel:', 'key:', 'help', 'report'], $restIndex);
     if (isset($options['help'])) {
         preg_match('#/\*\*(.*?)\*/#s', file_get_contents(__FILE__), $m);
         echo preg_replace('#^ ?\* ?#m', '', $m[1]), "\n";
+        return 0;
+    }
+    require_once __DIR__ . '/psi-report.php';
+    if (isset($options['report'])) {
+        $csv = $options['out'] ?? __DIR__ . '/psi-results.csv';
+        if (!is_file($csv)) {
+            fwrite(STDERR, "Нет файла замеров {$csv}\n");
+            return 1;
+        }
+        echo 'Отчёт: ', writeReport($csv), "\n";
         return 0;
     }
 
@@ -167,6 +181,7 @@ function main(array $argv, ?string $settingsKey = null): int
         echo "?vps=off работает для PSI, только если на сайте включено «Отладочные параметры для всех» — иначе варианты одинаковые.\n";
     }
     echo "\nРезультаты дописаны в {$out}\n";
+    echo 'Отчёт по всей истории замеров: ', writeReport($out), "\n";
 
     if (isset($options['compare'])) {
         $before = medians(array_filter(readCsv($out), static fn(array $row): bool => $row['label'] === $options['compare']));
