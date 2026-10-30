@@ -65,9 +65,9 @@ final class Config
         // картинки, для которых WebP не делается (сжимаются вручную): пути и маски, как у страниц
         'WEBP_EXCLUDE_FILES' => '',
 
-        // скрипты — после window.onload (как type="deferjs" у Ammina); исключения — те же, что у неё
+        // скрипты — после window.onload (как type="deferjs" у Ammina); исключение — HeaderJilin (его исключала и она)
         'JS_ACTIVE' => 'Y',
-        'JS_EXCLUDE_FILES' => "/local/templates/demis_edges/scripts/import/HeaderJilin/\n/local/templates/demis_edges/js/inp.min.js",
+        'JS_EXCLUDE_FILES' => '/local/templates/demis_edges/scripts/import/HeaderJilin/',
 
         'CACHE_TTL_DAYS' => 30,
 

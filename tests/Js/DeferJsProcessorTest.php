@@ -29,7 +29,7 @@ final class DeferJsProcessorTest extends TestCase
             . '<script type="deferjs">ammina()</script>'
             . '<script data-vps-skip src="/keep.js"></script>'
             . '<script src="/local/templates/demis_edges/scripts/import/HeaderJilin/index.js?v=1"></script>'
-            . '<script src="https://example.ru/local/templates/demis_edges/js/inp.min.js"></script>'
+            . '<script src="https://example.ru/local/templates/demis_edges/scripts/import/HeaderJilin/menu.js"></script>'
             . '</body></html>';
         $out = $this->optimize($html, [], $ctx);
 
@@ -43,7 +43,7 @@ final class DeferJsProcessorTest extends TestCase
         foreach (['<script type="application/ld+json">', '<script type="text/template">', '<script type="module" src="/m.js">',
                      '<script nomodule src="/legacy.js">', '<script type="deferjs">', '<script data-vps-skip src="/keep.js">',
                      '<script src="/local/templates/demis_edges/scripts/import/HeaderJilin/index.js?v=1">',
-                     '<script src="https://example.ru/local/templates/demis_edges/js/inp.min.js">'] as $kept) {
+                     '<script src="https://example.ru/local/templates/demis_edges/scripts/import/HeaderJilin/menu.js">'] as $kept) {
             $this->assertStringContainsString($kept, $out);
         }
         // загрузчик — перед </body>, после всех скриптов
