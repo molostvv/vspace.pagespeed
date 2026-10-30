@@ -109,6 +109,8 @@ const PSI_REPORT_TEMPLATE = <<<'HTML'
   --warning: #fab219;
   --critical: #d03b3b;
   --wash: rgba(42,120,214,0.08);
+  --good-text: #006300;
+  --critical-text: #d03b3b;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -124,6 +126,8 @@ const PSI_REPORT_TEMPLATE = <<<'HTML'
     --accent: #3987e5;
     --other: #898781;
     --wash: rgba(57,135,229,0.14);
+    --good-text: #0ca30c;
+    --critical-text: #e66767;
   }
 }
 :root[data-theme="dark"] {
@@ -139,6 +143,8 @@ const PSI_REPORT_TEMPLATE = <<<'HTML'
   --accent: #3987e5;
   --other: #898781;
   --wash: rgba(57,135,229,0.14);
+  --good-text: #0ca30c;
+  --critical-text: #e66767;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
@@ -184,6 +190,10 @@ td.page { white-space: normal; word-break: break-all; min-width: 160px; max-widt
 #tip .row { display: flex; align-items: center; gap: 8px; }
 #tip .row b { font-size: 13px; }
 .empty { color: var(--muted); padding: 16px; }
+.dline { display: block; font-size: 12px; }
+.delta.better { color: var(--good-text); }
+.delta.worse { color: var(--critical-text); }
+tr.total td { border-top: 2px solid var(--axis); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -193,11 +203,26 @@ td.page { white-space: normal; word-break: break-all; min-width: 160px; max-widt
   <p class="note" id="meta"></p>
 
   <div class="controls">
-    <label>Сайт <select id="host"></select></label>
     <div class="seg" role="group" aria-label="Устройство">
       <button type="button" data-device="mobile" aria-pressed="true">Телефон</button>
       <button type="button" data-device="desktop" aria-pressed="false">Компьютер</button>
     </div>
+  </div>
+
+  <h2>Сравнение</h2>
+  <p class="note">Для каждого сайта — последний замер каждого вида: модуль, Ammina (метка серии содержит «ammina»),
+    без оптимизации (<code>?vps=off</code>); все запуски — в «Истории сайта» ниже. Страницы сопоставляются по адресу
+    без домена — можно сравнить разные сайты (demis.ru с Ammina и scilib.ru с модулем) или один сайт до и после
+    переноса. Разные серверы отличаются и сами по себе — смотрите и на TTFB (ответ сервера).</p>
+  <div class="controls">
+    <label>Было <select id="cmp-a"></select></label>
+    <label>Стало <select id="cmp-b"></select></label>
+  </div>
+  <div class="card scroll"><table id="compare"></table></div>
+
+  <h2>История сайта</h2>
+  <div class="controls">
+    <label>Сайт <select id="host"></select></label>
     <label>Показатель на графиках <select id="metric"></select></label>
   </div>
 
@@ -228,8 +253,12 @@ td.page { white-space: normal; word-break: break-all; min-width: 160px; max-widt
     lcp: { name: 'LCP', fmt: sec, th: [2500, 4000] },
     cls: { name: 'CLS', fmt: function (v) { return v.toFixed(3); }, th: [0.1, 0.25] },
     tbt: { name: 'TBT', fmt: function (v) { return Math.round(v) + ' мс'; }, th: [200, 600] },
-    fcp: { name: 'FCP', fmt: sec, th: [1800, 3000] }
+    fcp: { name: 'FCP', fmt: sec, th: [1800, 3000] },
+    ttfb: { name: 'TTFB', fmt: function (v) { return Math.round(v) + ' мс'; }, th: [800, 1800] }
   };
+  // разница меньше — «без изменений»
+  var SAME = { score: 1, lcp: 100, cls: 0.005, tbt: 20, fcp: 100, ttfb: 20 };
+  var COMPARE_METRICS = ['score', 'lcp', 'cls', 'tbt', 'fcp', 'ttfb'];
   var TABLE_METRICS = ['score', 'lcp', 'cls', 'tbt', 'fcp'];
   var state = { host: null, device: 'mobile', metric: 'score' };
 
@@ -455,8 +484,129 @@ td.page { white-space: normal; word-break: break-all; min-width: 160px; max-widt
     });
   }
 
+  // --- Сравнение двух замеров: вариант = запуск + сайт + с модулем / без.
+  // В списках — только последний замер каждого вида на сайте: модуль, Ammina (метка содержит «ammina»),
+  // без оптимизации (?vps=off). Все запуски — в «Истории сайта».
+  var KIND_NAME = { module: 'модуль', ammina: 'Ammina', off: 'без оптимизации' };
+  var all = [], seenVariant = {};
+  DATA.points.forEach(function (p) {
+    ['on', 'off'].forEach(function (side) {
+      var key = p.s + '|' + p.host + '|' + side;
+      if (!p[side] || seenVariant[key]) return;
+      seenVariant[key] = 1;
+      var ser = DATA.series[p.s];
+      var kind = side === 'off' ? 'off' : (/ammina/i.test(ser.label) ? 'ammina' : 'module');
+      all.push({ key: key, s: p.s, host: p.host, side: side, kind: kind,
+        text: p.host + ' · ' + KIND_NAME[kind] + ' · ' + seriesTitle(ser) + ' (' + ser.label + ')' });
+    });
+  });
+  all.sort(function (a, b) { return b.s - a.s || (a.side === 'on' ? -1 : 1); });
+  var variants = [], seenKind = {};
+  all.forEach(function (v) {
+    if (seenKind[v.host + '|' + v.kind]) return;
+    seenKind[v.host + '|' + v.kind] = 1;
+    variants.push(v);
+  });
+  variants.sort(function (a, b) { return a.host.localeCompare(b.host) || ['ammina', 'module', 'off'].indexOf(a.kind) - ['ammina', 'module', 'off'].indexOf(b.kind); });
+  var cmpA = document.getElementById('cmp-a'), cmpB = document.getElementById('cmp-b');
+  variants.forEach(function (v) {
+    var o1 = el('option', null, v.text); o1.value = v.key; cmpA.appendChild(o1);
+    var o2 = el('option', null, v.text); o2.value = v.key; cmpB.appendChild(o2);
+  });
+  function store(key, value) { try { if (value === undefined) return localStorage.getItem(key); localStorage.setItem(key, value); } catch (e) { return null; } }
+  function has(key) { return variants.some(function (v) { return v.key === key; }); }
+  (function defaults() {
+    // «Было» — последний замер с меткой ammina (база), иначе другой сайт / тот же запуск без модуля; «Стало» — последний с модулем
+    var a = store('psi-cmp-a'), b = store('psi-cmp-b');
+    var newest = variants.slice().sort(function (x, y) { return y.s - x.s; });
+    if (!has(b)) {
+      var nb = newest.filter(function (v) { return v.kind === 'module'; })[0] || newest[0];
+      b = nb ? nb.key : null;
+    }
+    if (!has(a)) {
+      var vb = newest.filter(function (v) { return v.key === b; })[0];
+      var na = newest.filter(function (v) { return v.kind === 'ammina'; })[0]
+        || (vb && newest.filter(function (v) { return v.host === vb.host && v.kind === 'off'; })[0])
+        || newest.filter(function (v) { return v.key !== b; })[0];
+      a = na ? na.key : null;
+    }
+    if (a) cmpA.value = a;
+    if (b) cmpB.value = b;
+  })();
+
+  function variantPoints(key) {
+    var v = variants.filter(function (x) { return x.key === key; })[0];
+    var map = {};
+    if (!v) return map;
+    DATA.points.forEach(function (p) {
+      if (p.s === v.s && p.host === v.host && p.device === state.device && p[v.side]) map[p.path] = p[v.side];
+    });
+    return map;
+  }
+  function deltaEl(key, a, b) {
+    var m = METRICS[key], d = b - a;
+    if (Math.abs(d) < SAME[key]) return el('span', 'off', '≈ без изменений');
+    var better = m.up ? d > 0 : d < 0;
+    var txt = key === 'score' ? (d > 0 ? '+' : '−') + Math.abs(Math.round(d))
+      : key === 'cls' ? (d > 0 ? '+' : '−') + Math.abs(d).toFixed(3)
+      : (key === 'lcp' || key === 'fcp') ? (d > 0 ? '+' : '−') + (Math.abs(d) / 1000).toFixed(1) + ' с'
+      : (d > 0 ? '+' : '−') + Math.abs(Math.round(d)) + ' мс';
+    return el('span', 'delta ' + (better ? 'better' : 'worse'), txt + (better ? ' · лучше' : ' · хуже'));
+  }
+  function renderCompare() {
+    var table = document.getElementById('compare');
+    table.textContent = '';
+    store('psi-cmp-a', cmpA.value);
+    store('psi-cmp-b', cmpB.value);
+    var A = variantPoints(cmpA.value), B = variantPoints(cmpB.value);
+    var paths = Object.keys(B).filter(function (p) { return A[p]; })
+      .sort(function (a, b) { return a.length - b.length || a.localeCompare(b); });
+    if (!paths.length) {
+      table.appendChild(el('caption', 'empty', 'Нет общих страниц у выбранных замеров для этого устройства.'));
+      return;
+    }
+    var head = el('tr');
+    head.appendChild(el('th', null, 'Страница'));
+    COMPARE_METRICS.forEach(function (k) { head.appendChild(el('th', null, METRICS[k].name)); });
+    table.appendChild(head);
+    function row(title, a, b, cls) {
+      var tr = el('tr', cls);
+      tr.appendChild(el('td', 'page', title));
+      COMPARE_METRICS.forEach(function (k) {
+        var td = el('td');
+        var vb = b[k], va = a[k];
+        if (vb === null || vb === undefined) { td.appendChild(el('span', 'off', '—')); tr.appendChild(td); return; }
+        var st = status(k, vb);
+        var dot = el('span', 'st ' + st); dot.setAttribute('title', STATUS_NAME[st]);
+        td.appendChild(dot);
+        td.appendChild(el('span', 'v', METRICS[k].fmt(vb)));
+        if (va !== null && va !== undefined) {
+          td.appendChild(el('span', 'off', 'было: ' + METRICS[k].fmt(va)));
+          var dl = el('span', 'dline'); dl.appendChild(deltaEl(k, va, vb)); td.appendChild(dl);
+        }
+        tr.appendChild(td);
+      });
+      table.appendChild(tr);
+    }
+    paths.forEach(function (p) { row(p, A[p], B[p]); });
+    if (paths.length > 1) {
+      var mean = function (src) {
+        var r = {};
+        COMPARE_METRICS.forEach(function (k) {
+          var vals = paths.map(function (p) { return src[p][k]; }).filter(function (v) { return v !== null && v !== undefined; });
+          r[k] = vals.length ? vals.reduce(function (s, v) { return s + v; }, 0) / vals.length : null;
+        });
+        return r;
+      };
+      row('В среднем по ' + paths.length + ' стр.', mean(A), mean(B), 'total');
+    }
+  }
+  cmpA.addEventListener('change', renderCompare);
+  cmpB.addEventListener('change', renderCompare);
+
   function render() {
     var points = current();
+    renderCompare();
     renderLast(points);
     renderCharts(points);
     renderHistory(points);

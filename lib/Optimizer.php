@@ -6,6 +6,7 @@ use Vspace\PageSpeed\Critical\CriticalCssBuilder;
 use Vspace\PageSpeed\Critical\CriticalCssProcessor;
 use Vspace\PageSpeed\Css\CriticalExtractor;
 use Vspace\PageSpeed\Css\StylesheetIndexer;
+use Vspace\PageSpeed\Html\BodyStartMover;
 use Vspace\PageSpeed\Html\Document;
 use Vspace\PageSpeed\Html\Edits;
 use Vspace\PageSpeed\Images\ImagesProcessor;
@@ -60,6 +61,10 @@ final class Optimizer
                 $config->criticalMaxSize,
             );
             $processors[] = new CriticalCssProcessor($config, $builder, self::publicStorage($documentRoot));
+            // с critical первая отрисовка раньше конца HTML: закреплённые блоки из подвала — в начало body
+            if ($config->moveToBodyStart) {
+                $processors[] = new BodyStartMover($config->moveToBodyStart);
+            }
         }
         if ($config->imagesActive || $webp) {
             $processors[] = new ImagesProcessor($config, $webp ? new WebpRewriter($store, $config->webpExcludeFiles) : null);

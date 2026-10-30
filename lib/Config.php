@@ -43,6 +43,9 @@ final class Config
         // слайдер под hero на главной)
         'ADD_CLASSES' => "policy-cookie\npolicy-cookie-container\nonline-helper\njq-selectbox\njqselect\njq-selectbox__select\njq-selectbox__select-text\njq-selectbox__trigger\njq-selectbox__trigger-arrow\nowl-loaded\nowl-stage-outer\nowl-stage\nowl-item\nowl-nav\nowl-prev\nowl-next\nowl-dots\nowl-dot",
         'ADD_IDS' => '',
+        // закреплённые блоки из конца разметки — в начало body: плашка cookie (footer.php) иначе появлялась на
+        // 1–2 с позже первого экрана и на телефоне становилась LCP (медицина, контекст)
+        'MOVE_TO_BODY_START' => 'policy-cookie-note',
         'EXCLUDE_FILES' => '',
         'INLINE_STYLES' => 'Y',
         'INLINE_STYLES_MIN' => 8192,
@@ -100,6 +103,8 @@ final class Config
     public readonly array $addClasses;
     /** @var list<string> */
     public readonly array $addIds;
+    /** @var list<string> id элементов, которые переносятся в начало body (Html\BodyStartMover) */
+    public readonly array $moveToBodyStart;
     /** @var list<string> */
     public readonly array $excludeFiles;
     public readonly bool $inlineStyles;
@@ -151,6 +156,7 @@ final class Config
         $this->foldSkipClasses = self::tokens($v['FOLD_SKIP_CLASSES']);
         $this->addClasses = self::tokens($v['ADD_CLASSES']);
         $this->addIds = self::tokens($v['ADD_IDS']);
+        $this->moveToBodyStart = self::tokens($v['MOVE_TO_BODY_START']);
         $this->excludeFiles = self::lines($v['EXCLUDE_FILES']);
         $this->inlineStyles = self::flag($v['INLINE_STYLES']);
         $this->inlineStylesMin = max(0, (int)$v['INLINE_STYLES_MIN']);

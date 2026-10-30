@@ -58,6 +58,7 @@ $vpsTabs = [
         'FOLD_SKIP_CLASSES' => 'textarea',
         'ADD_CLASSES' => 'textarea',
         'ADD_IDS' => 'textarea',
+        'MOVE_TO_BODY_START' => 'textarea',
         '#FILES' => null,
         'EXCLUDE_FILES' => 'textarea',
         'INLINE_STYLES' => 'checkbox',
